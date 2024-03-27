@@ -1,8 +1,7 @@
 #ifndef ORDER_HPP
 #define ORDER_HPP
 
-#include <memory>
-#include "Limit.hpp"
+class Limit;
 
 class Order {
 private:
@@ -10,11 +9,14 @@ private:
     bool buyOrSell;
     int shares;
     int limit;
-    std::unique_ptr<Order> nextOrder;
-    std::unique_ptr<Order> prevOrder;
+    Order *nextOrder;
+    Order *prevOrder;
     Limit *parentLimit;
+
+    friend class Limit;
 public:
     Order(int _idNumber, bool _buyOrSell, int _shares, int _limit);
+    void print();
 };
 
 #endif

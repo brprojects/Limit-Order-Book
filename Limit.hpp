@@ -1,7 +1,7 @@
 #ifndef LIMIT_HPP
 #define LIMIT_HPP
 
-#include "Order.hpp"
+class Order;
 
 class Limit {
 private:
@@ -14,8 +14,11 @@ private:
     Order *headOrder;
     Order *tailOrder;
 public:
-    Limit();
-    void append();
+    Limit(int _limitPrice, int _size=0, int _totalVolume=0);
+    void append(Order *_order);
+    void printForward();
+    void printBackward();
+    void print();
 };
 
 #endif
