@@ -35,18 +35,22 @@ int main() {
 
     order1->print();
 
-    ordersMap[1]->print();
+    if (ordersMap.find(1) != ordersMap.end())
+    {
+    ordersMap.at(1)->print();
+    }
 
     // Don't forget to release memory
     delete limit;
-    delete order1;
-    delete order2;
-    delete order3;
+    // delete order1;
+    // delete order2;
+    // delete order3;
 
     // Don't forget to clear the map
-    // for (auto& pair : ordersMap) {
-    //     delete pair.second;
-    // }
+    for (auto& [id, order] : ordersMap) {
+        order->print();
+        delete order;
+    }
     ordersMap.clear();
 
     return 0;

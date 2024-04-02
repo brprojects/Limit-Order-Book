@@ -16,6 +16,7 @@ private:
     friend class Limit;
 public:
     Order(int _idNumber, bool _buyOrSell, int _shares, int _limit);
+    ~Order();
     void print();
 };
 

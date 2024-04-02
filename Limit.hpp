@@ -13,6 +13,8 @@ private:
     Limit *rightChild;
     Order *headOrder;
     Order *tailOrder;
+
+    friend class Order;
 public:
     Limit(int _limitPrice, int _size=0, int _totalVolume=0);
     void append(Order *_order);
