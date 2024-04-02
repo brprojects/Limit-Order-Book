@@ -1,7 +1,6 @@
 #include "Limit.hpp"
 #include "Order.hpp"
 #include <iostream>
-using namespace std;
 
 Limit::Limit(int _limitPrice, int _size, int _totalVolume)
     : limitPrice(_limitPrice), size(_size), totalVolume(_totalVolume),
@@ -24,21 +23,21 @@ void Limit::append(Order *order){
 void Limit::printForward(){
     Order* current = headOrder;
     while (current != nullptr) {
-        cout << current->idNumber << " ";
+        std::cout << current->idNumber << " ";
         current = current->nextOrder;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void Limit::printBackward(){
     Order* current = tailOrder;
     while (current != nullptr) {
-        cout << current->idNumber << " ";
+        std::cout << current->idNumber << " ";
         current = current->prevOrder;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void Limit::print(){
-    cout << totalVolume << endl;
+    std::cout << totalVolume << std::endl;
 }
