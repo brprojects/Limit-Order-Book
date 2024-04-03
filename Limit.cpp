@@ -7,7 +7,8 @@ Limit::Limit(int _limitPrice, int _size, int _totalVolume)
     parent(nullptr), leftChild(nullptr), rightChild(nullptr),
     headOrder(nullptr), tailOrder(nullptr) {}
 
-void Limit::append(Order *order){
+void Limit::append(Order *order)
+{
         if (headOrder == nullptr) {
             headOrder = tailOrder = order;
         } else {
@@ -20,7 +21,8 @@ void Limit::append(Order *order){
         order->parentLimit = this;
 }
 
-void Limit::printForward(){
+void Limit::printForward()
+{
     Order* current = headOrder;
     while (current != nullptr) {
         std::cout << current->idNumber << " ";
@@ -29,7 +31,8 @@ void Limit::printForward(){
     std::cout << std::endl;
 }
 
-void Limit::printBackward(){
+void Limit::printBackward()
+{
     Order* current = tailOrder;
     while (current != nullptr) {
         std::cout << current->idNumber << " ";
@@ -38,6 +41,7 @@ void Limit::printBackward(){
     std::cout << std::endl;
 }
 
-void Limit::print(){
+void Limit::print()
+{
     std::cout << totalVolume << std::endl;
 }
