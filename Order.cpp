@@ -14,6 +14,11 @@ Order::~Order()
 
 void Order::print()
 {
+    std::cout << "Order ID: " << idNumber 
+    << ", Order Type: " << (buyOrSell == 1 ? "buy" : "sell") 
+    << ", Order Size: " << shares
+    << ", Order Limit: " << limit 
+    << std::endl;
     if (parentLimit != nullptr) {
         parentLimit->print();
     } else {

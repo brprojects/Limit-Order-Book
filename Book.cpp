@@ -44,7 +44,6 @@ void Book::printLimit(int limitPrice)
         limitMap.at(limitPrice)->printForward();
         std::cout << "Limit backwards:" << std::endl;
         limitMap.at(limitPrice)->printBackward();
-        std::cout << "Limit volume:" << std::endl;
         limitMap.at(limitPrice)->print();
     }
 }
@@ -53,7 +52,6 @@ void Book::printOrder(int orderId)
 {
     if (orderMap.find(orderId) != orderMap.end())
     {
-        std::cout << "Order's Limit volume:" << std::endl;
         orderMap.at(orderId)->print();
     }
 }

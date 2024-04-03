@@ -43,5 +43,8 @@ void Limit::printBackward()
 
 void Limit::print()
 {
-    std::cout << totalVolume << std::endl;
+    std::cout << "Limit Price: " << limitPrice 
+    << ", Limit Volume: " << totalVolume 
+    << ", Limit Size: " << size 
+    << std::endl;
 }
