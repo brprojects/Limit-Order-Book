@@ -8,15 +8,20 @@ Book::Book() : buyTree(nullptr), sellTree(nullptr), lowestSell(nullptr), highest
 Book::~Book()
 {
     for (auto& [id, order] : orderMap) {
-        order->print();
+        // order->print();
         delete order;
     }
     orderMap.clear();
 
-    for (auto& [limitPrice, limit] : limitMap) {
+    for (auto& [limitPrice, limit] : limitBuyMap) {
         delete limit;
     }
-    limitMap.clear();
+    limitBuyMap.clear();
+
+    for (auto& [limitPrice, limit] : limitSellMap) {
+        delete limit;
+    }
+    limitSellMap.clear();
 }
 
 void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
@@ -24,20 +29,56 @@ void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
     Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
     orderMap.emplace(orderId, newOrder);
 
-    if (limitMap.find(limitPrice) != limitMap.end())
+    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
+    if (limitMap.find(limitPrice) == limitMap.end())
     {
-    limitMap.at(limitPrice)->append(newOrder);
+        addLimit(limitPrice, newOrder->buyOrSell);
     }
+    limitMap.at(limitPrice)->append(newOrder);
 }
 
-void Book::addLimit(int limitPrice)
+void Book::addLimit(int limitPrice, bool buyOrSell)
 {
+    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+    auto& tree = buyOrSell ? buyTree : sellTree;
+
     Limit* newLimit = new Limit(limitPrice);
     limitMap.emplace(limitPrice, newLimit);
+    Limit* root = insert(tree, newLimit);
+    // newLimit->print();
+    if (tree == nullptr)
+    {
+        tree = newLimit;
+    } 
+    // else
+    // {
+    //     std::cout << newLimit->parent->limitPrice << std::endl;
+    // }
 }
 
-void Book::printLimit(int limitPrice)
+Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
 {
+    if (root == nullptr)
+    {
+        limit->parent = parent;
+        return limit;
+    }
+    if (limit->limitPrice < root->limitPrice)
+    {
+        root->leftChild = insert(root->leftChild, limit, root);
+    } else if (limit->limitPrice > root->limitPrice) 
+    {
+        root->rightChild = insert(root->rightChild, limit, root);
+    }
+
+    return root;
+}
+
+void Book::printLimit(int limitPrice, bool buyOrSell)
+{
+    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
     if (limitMap.find(limitPrice) != limitMap.end())
     {
         std::cout << "Limit forwards:" << std::endl;

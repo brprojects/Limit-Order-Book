@@ -7,16 +7,14 @@
 int main() {
     Book* book = new Book();
 
-    // Create a Limit
-    book->addLimit(100);
-
     // Create some Order objects
     book->addOrder(1, true, 100, 100);
-    book->addOrder(2, false, 50, 100);
-    book->addOrder(3, true, 75, 100);
+    book->addOrder(4, true, 100, 110);
+    book->addOrder(2, true, 50, 120);
+    book->addOrder(3, true, 75, 90);
 
     // Print the Limit
-    book->printLimit(100);
+    book->printLimit(100, true);
 
     book->printOrder(1);
 

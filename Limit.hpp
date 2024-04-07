@@ -15,6 +15,7 @@ private:
     Order *tailOrder;
 
     friend class Order;
+    friend class Book;
 public:
     Limit(int _limitPrice, int _size=0, int _totalVolume=0);
     void append(Order *_order);
