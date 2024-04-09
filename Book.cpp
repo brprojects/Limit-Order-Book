@@ -42,19 +42,20 @@ void Book::addLimit(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     auto& tree = buyOrSell ? buyTree : sellTree;
+    auto& bookEdge = buyOrSell ? highestBuy : lowestSell;
 
     Limit* newLimit = new Limit(limitPrice);
     limitMap.emplace(limitPrice, newLimit);
-    Limit* root = insert(tree, newLimit);
-    // newLimit->print();
+
     if (tree == nullptr)
     {
         tree = newLimit;
-    } 
-    // else
-    // {
-    //     std::cout << newLimit->parent->limitPrice << std::endl;
-    // }
+        bookEdge = newLimit;
+    } else
+    {
+        Limit* root = insert(tree, newLimit);
+        updateBookEdge(newLimit, buyOrSell);
+    }
 }
 
 Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
@@ -75,24 +76,94 @@ Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
     return root;
 }
 
-void Book::printLimit(int limitPrice, bool buyOrSell)
+void Book::updateBookEdge(Limit* newLimit, bool buyOrSell)
+{
+    if (buyOrSell)
+    {
+        if (newLimit->limitPrice > highestBuy->limitPrice)
+        {
+            highestBuy = newLimit;
+        }
+    } else
+    {
+        if (newLimit->limitPrice < lowestSell->limitPrice)
+        {
+            lowestSell = newLimit;
+        }
+    }
+}
+
+void Book::cancelOrder(int orderId)
+{
+    Order* order = searchOrderMap(orderId);
+    if (order != nullptr)
+    {
+        order->cancel();
+        delete order;
+        orderMap.erase(orderId);
+    }
+}
+
+void Book::printLimit(int limitPrice, bool buyOrSell) const
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
 
     if (limitMap.find(limitPrice) != limitMap.end())
     {
-        std::cout << "Limit forwards:" << std::endl;
+        std::cout << (buyOrSell ? "Buy " : "Sell ") << "limit forwards:" << std::endl;
         limitMap.at(limitPrice)->printForward();
-        std::cout << "Limit backwards:" << std::endl;
+        std::cout << (buyOrSell ? "Buy " : "Sell ") << "limit backwards:" << std::endl;
         limitMap.at(limitPrice)->printBackward();
         limitMap.at(limitPrice)->print();
+    } else
+    {
+        std::cout << "No " << (buyOrSell ? "buy " : "sell ") << "limit at " << limitPrice <<std::endl;
     }
 }
 
-void Book::printOrder(int orderId)
+void Book::printOrder(int orderId) const
 {
     if (orderMap.find(orderId) != orderMap.end())
     {
         orderMap.at(orderId)->print();
+    }
+}
+
+Order* Book::searchOrderMap(int orderId) const
+{
+    auto it = orderMap.find(orderId);
+    if (it != orderMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No order number " << orderId << std::endl;
+        return nullptr;
+    }
+}
+
+Limit* Book::searchLimitBuyMap(int limitPrice) const
+{
+    auto it = limitBuyMap.find(limitPrice);
+    if (it != limitBuyMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No buy limit at " << limitPrice << std::endl;
+        return nullptr;
+    }
+}
+
+Limit* Book::searchLimitSellMap(int limitPrice) const
+{
+    auto it = limitSellMap.find(limitPrice);
+    if (it != limitSellMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No sell limit at " << limitPrice << std::endl;
+        return nullptr;
     }
 }

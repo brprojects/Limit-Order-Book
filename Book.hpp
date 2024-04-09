@@ -22,8 +22,13 @@ public:
     void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
     void addLimit(int limitPrice, bool buyOrSell);
     Limit* insert(Limit* root, Limit* limit, Limit* parent=nullptr);
-    void printLimit(int limitPrice, bool buyOrSell);
-    void printOrder(int orderId);
+    void updateBookEdge(Limit* newLimit, bool buyOrSell);
+    void cancelOrder(int orderId);
+    void printLimit(int limitPrice, bool buyOrSell) const;
+    void printOrder(int orderId) const;
+    Order* searchOrderMap(int orderId) const;
+    Limit* searchLimitBuyMap(int limitPrice) const;
+    Limit* searchLimitSellMap(int limitPrice) const;
 };
 
 #endif

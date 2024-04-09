@@ -8,15 +8,25 @@ int main() {
     Book* book = new Book();
 
     // Create some Order objects
-    book->addOrder(1, true, 100, 100);
-    book->addOrder(4, true, 100, 110);
-    book->addOrder(2, true, 50, 120);
-    book->addOrder(3, true, 75, 90);
+    book->addOrder(1, false, 100, 100);
+    book->addOrder(4, false, 100, 110);
+    book->addOrder(2, false, 50, 120);
+    book->addOrder(3, false, 75, 90);
+    book->addOrder(5, false, 30, 90);
+    book->addOrder(6, false, 50, 90);
+    book->addOrder(7, false, 10, 90);
+
 
     // Print the Limit
-    book->printLimit(100, true);
+    book->printLimit(90, false);
+    book->searchLimitSellMap(90)->getHeadOrder()->print();
 
-    book->printOrder(1);
+    book->cancelOrder(7);
+
+    book->printLimit(90, false);
+    book->searchLimitSellMap(90)->getHeadOrder()->print();
+
+    book->cancelOrder(7);
 
     // Clear the maps and release memory
     delete book;

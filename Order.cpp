@@ -12,7 +12,25 @@ Order::~Order()
     parentLimit->size -= 1;
 }
 
-void Order::print()
+void Order::cancel()
+{
+    if (prevOrder == nullptr)
+    {
+        parentLimit->headOrder = nextOrder;
+    } else
+    {
+        prevOrder->nextOrder = nextOrder;
+    }
+    if (nextOrder == nullptr)
+    {
+        parentLimit->tailOrder = prevOrder;
+    } else
+    {
+    nextOrder->prevOrder = prevOrder;
+    }
+}
+
+void Order::print() const
 {
     std::cout << "Order ID: " << idNumber 
     << ", Order Type: " << (buyOrSell == 1 ? "buy" : "sell") 

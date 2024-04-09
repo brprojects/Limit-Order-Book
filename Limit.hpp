@@ -18,10 +18,11 @@ private:
     friend class Book;
 public:
     Limit(int _limitPrice, int _size=0, int _totalVolume=0);
+    Order* getHeadOrder() const;
     void append(Order *_order);
-    void printForward();
-    void printBackward();
-    void print();
+    void printForward() const;
+    void printBackward() const;
+    void print() const;
 };
 
 #endif
