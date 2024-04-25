@@ -6,12 +6,27 @@ Order::Order(int _idNumber, bool _buyOrSell, int _shares, int _limit)
     : idNumber(_idNumber), buyOrSell(_buyOrSell), shares(_shares), limit(_limit), 
     nextOrder(nullptr), prevOrder(nullptr), parentLimit(nullptr) {}
 
-Order::~Order()
+int Order::getOrderSize() const
 {
-    parentLimit->totalVolume -= shares;
-    parentLimit->size -= 1;
+    return shares;
 }
 
+int Order::getOrderId() const
+{
+    return idNumber;
+}
+
+bool Order::getBuyOrSell() const
+{
+    return buyOrSell;
+}
+
+Limit* Order::getParentLimit() const
+{
+    return parentLimit;
+}
+
+// Remove order from its parent limit
 void Order::cancel()
 {
     if (prevOrder == nullptr)
@@ -28,6 +43,9 @@ void Order::cancel()
     {
     nextOrder->prevOrder = prevOrder;
     }
+
+    parentLimit->totalVolume -= shares;
+    parentLimit->size -= 1;
 }
 
 void Order::print() const
@@ -37,9 +55,4 @@ void Order::print() const
     << ", Order Size: " << shares
     << ", Order Limit: " << limit 
     << std::endl;
-    if (parentLimit != nullptr) {
-        parentLimit->print();
-    } else {
-        std::cout << "No parent limit assigned" << std::endl;
-    }
 }

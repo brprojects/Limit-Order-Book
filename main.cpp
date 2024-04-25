@@ -18,13 +18,13 @@ int main() {
 
 
     // Print the Limit
-    book->printLimit(90, false);
-    book->searchLimitSellMap(90)->getHeadOrder()->print();
+    book->printLimit(100, false);
+    book->searchLimitMaps(100, false)->getHeadOrder()->print();
 
-    book->cancelOrder(7);
+    book->cancelOrder(1);
 
-    book->printLimit(90, false);
-    book->searchLimitSellMap(90)->getHeadOrder()->print();
+    book->printLimit(100, false);
+    book->searchLimitMaps(100, false)->getHeadOrder()->print();
 
     book->cancelOrder(7);
 
