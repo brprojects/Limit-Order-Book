@@ -9,16 +9,80 @@ Limit::Limit(int _limitPrice, bool _buyOrSell, int _size, int _totalVolume)
 
 Limit::~Limit()
 {
-    if (parent == nullptr)
-    {
-        return;
-    }
-    if (parent->leftChild = this)
-    {
-        parent->leftChild = nullptr;
+    if (parent != nullptr) {
+        bool leftOrRightChild = (limitPrice < parent->getLimitPrice());
+
+        // Case 1: Node with only one child or no child
+        if (leftChild == nullptr) {
+            if (leftOrRightChild) {
+                parent->leftChild = rightChild;
+            } else {
+                parent->rightChild = rightChild;
+            }
+            if (rightChild != nullptr) {
+                rightChild->setParent(parent);
+            }
+            return;
+        } else if (rightChild == nullptr) {
+            if (leftOrRightChild) {
+                parent->leftChild = leftChild;
+            } else {
+                parent->rightChild = leftChild;
+            }
+            leftChild->setParent(parent);
+            return;
+        }
+
+        // Case 2: Node with two children
+        Limit* temp = rightChild;
+        while (temp->getLeftChild() != nullptr) 
+        {
+            temp = temp->getLeftChild();
+        }
+
+        if (rightChild->getLeftChild() != nullptr)
+        {
+            temp->getParent()->setLeftChild(nullptr);
+            temp->setRightChild(rightChild);
+            rightChild->setParent(temp);
+        }
+        temp->setParent(parent);
+        temp->setLeftChild(leftChild);
+        leftChild->setParent(temp);
+        if (leftOrRightChild) {
+            parent->leftChild = temp;
+        } else {
+            parent->rightChild = temp;
+        }
     } else
     {
-        parent->rightChild = nullptr;
+        // Case 1: Node with only one child or no child
+        if (leftChild == nullptr && rightChild == nullptr) {
+            return;
+        } else if (leftChild == nullptr)
+        {
+            rightChild->setParent(nullptr);
+            return;
+        } else if (rightChild == nullptr)
+        {
+            leftChild->setParent(nullptr);
+            return;
+        }
+        
+        // Case 2: Node with two children
+        Limit* temp = rightChild;
+        while (temp->getLeftChild() != nullptr) {
+            temp = temp->getLeftChild();
+        }
+        if (rightChild->getLeftChild() != nullptr)
+        {
+            temp->getParent()->setLeftChild(nullptr);
+            temp->setRightChild(rightChild);
+            rightChild->setParent(temp);
+        }
+        temp->setParent(parent); // nullptr
+        temp->setLeftChild(leftChild);
+        leftChild->setParent(temp);
     }
 }
 

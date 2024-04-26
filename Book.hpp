@@ -29,20 +29,21 @@ public:
     Limit* insert(Limit* root, Limit* limit, Limit* parent=nullptr);
     void updateBookEdgeInsert(Limit* newLimit);
     void updateBookEdgeRemove(Limit* limit);
+    void changeBookRoots(Limit* limit);
     void cancelOrder(int orderId);
     Order* searchOrderMap(int orderId) const;
     void deleteFromOrderMap(int orderId);
     Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
-    void updateLimitHeightsOnInsert(Limit* limit);
     
     void printLimit(int limitPrice, bool buyOrSell) const;
     void printOrder(int orderId) const;
     void printBookEdges() const;
-
     std::vector<int> inOrderTreeTraversal(Limit* root);
     std::vector<int> preOrderTreeTraversal(Limit* root);
     std::vector<int> postOrderTreeTraversal(Limit* root);
+
+    void updateLimitHeightsOnInsert(Limit* limit);
     int limitHeightDifference(Limit *);
     Limit* rr_rotate(Limit *);
     Limit* ll_rotate(Limit *);
@@ -50,7 +51,6 @@ public:
     Limit* rl_rotate(Limit *);
     Limit* balance(Limit *);
 
-    void removeLimit(Limit*);
 };
 
 #endif

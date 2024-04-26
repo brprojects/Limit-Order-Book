@@ -16,6 +16,7 @@ Book::~Book()
     orderMap.clear();
 
     for (auto& [limitPrice, limit] : limitBuyMap) {
+        // std::cout << limit->getLimitPrice() << std::endl;
         delete limit;
     }
     limitBuyMap.clear();
@@ -121,6 +122,24 @@ void Book::updateBookEdgeRemove(Limit* limit)
     }
 }
 
+void Book::changeBookRoots(Limit* limit){
+    auto& tree = limit->getBuyOrSell() ? buyTree : sellTree;
+    if (limit == tree)
+    {
+        if (limit->getRightChild() != nullptr)
+        {
+            tree = tree->getRightChild();
+            while (tree->getLeftChild() != nullptr)
+            {
+                tree = tree->getLeftChild();
+            }
+        } else
+        {
+            tree = limit->getLeftChild();
+        }
+    }
+}
+
 // Delete an order from the book
 void Book::cancelOrder(int orderId)
 {
@@ -135,6 +154,7 @@ void Book::cancelOrder(int orderId)
                 updateBookEdgeRemove(order->getParentLimit());
 
                 deleteFromLimitMaps(order->getParentLimit()->getLimitPrice(), buyOrSell);
+                changeBookRoots(order->getParentLimit());
                 delete order->getParentLimit();
             }
         deleteFromOrderMap(orderId);
@@ -156,6 +176,7 @@ Order* Book::searchOrderMap(int orderId) const
     }
 }
 
+// Delete an order from the order map
 void Book::deleteFromOrderMap(int orderId)
 {
     orderMap.erase(orderId);
@@ -177,21 +198,11 @@ Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
     }
 }
 
+// Delete a limit from the limit maps
 void Book::deleteFromLimitMaps(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     limitMap.erase(limitPrice);
-}
-
-void Book::updateLimitHeightsOnInsert(Limit* limit)
-{
-    int i = 2;
-    while (limit->getParent() != nullptr && limit->getParent()->getHeight() < i)
-    {
-        limit->getParent()->setHeight(i);
-        i++;
-        limit = limit->getParent();
-    }
 }
 
 void Book::printLimit(int limitPrice, bool buyOrSell) const
@@ -264,41 +275,22 @@ std::vector<int> Book::postOrderTreeTraversal(Limit* root)
     return result;
 }
 
+// Update limit heights when a limit is added
+void Book::updateLimitHeightsOnInsert(Limit* limit)
+{
+    int i = 2;
+    while (limit->getParent() != nullptr && limit->getParent()->getHeight() < i)
+    {
+        limit->getParent()->setHeight(i);
+        i++;
+        limit = limit->getParent();
+    }
+}
+
+// Get height difference between a limits children
 int Book::limitHeightDifference(Limit *t) {
     int l_height = t->getLeftChild()->getHeight();
     int r_height = t->getRightChild()->getHeight();
     int b_factor = l_height - r_height;
     return b_factor;
-}
-
-void Book::removeLimit(Limit* limit){
-
-    auto leftOrRightChild = (limit->getLimitPrice() < limit->getParent()->getLimitPrice()) ? limit->getParent()->getLeftChild() : limit->getParent()->getRightChild();
-
-    // Case 1: Node with only one child or no child
-    if (limit->getLeftChild() == nullptr) {
-        leftOrRightChild = limit->getRightChild();
-        limit->getRightChild()->setParent(limit->getParent());
-        delete limit;
-        return;
-    } else if (limit->getRightChild() == nullptr) {
-        leftOrRightChild = limit->getLeftChild();
-        limit->getLeftChild()->setParent(limit->getParent());
-        delete limit;
-        return;
-    }
-
-    // Case 2: Node with two children
-    Limit* temp = limit->getRightChild();
-    while (temp->getLeftChild() != nullptr) {
-        temp = temp->getLeftChild();
-    }
-    temp->getParent()->setLeftChild(nullptr);
-    temp->setParent(limit->getParent());
-    temp->setLeftChild(limit->getLeftChild());
-    temp->getLeftChild()->setParent(temp);
-    temp->setRightChild(limit->getRightChild());
-    temp->getRightChild()->setParent(temp);
-
-    delete limit;
 }

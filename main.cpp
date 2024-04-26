@@ -7,26 +7,29 @@
 int main() {
     Book* book = new Book();
 
-    // Create some Order objects
-    book->addOrder(1, false, 100, 100);
-    book->addOrder(4, false, 100, 110);
-    book->addOrder(2, false, 50, 120);
-    book->addOrder(3, false, 75, 90);
-    book->addOrder(5, false, 30, 90);
-    book->addOrder(6, false, 50, 90);
-    book->addOrder(7, false, 10, 90);
+    book->addOrder(5, true, 80, 20);
+    book->addOrder(6, true, 80, 15);
+    book->addOrder(7, true, 80, 25);
+    book->addOrder(8, true, 80, 10);
+    book->addOrder(9, true, 80, 18);
+    book->addOrder(10, true, 80, 23);
+    book->addOrder(11, true, 80, 27);
+    book->addOrder(12, true, 80, 17);
+    book->addOrder(13, true, 80, 19);
 
-
-    // Print the Limit
-    book->printLimit(100, false);
-    book->searchLimitMaps(100, false)->getHeadOrder()->print();
-
-    book->cancelOrder(1);
-
-    book->printLimit(100, false);
-    book->searchLimitMaps(100, false)->getHeadOrder()->print();
+    Limit* limit1 = book->searchLimitMaps(20, true);
+    Limit* limit2 = book->searchLimitMaps(10, true);
+    Limit* limit3 = book->searchLimitMaps(18, true);
+    Limit* limit4 = book->searchLimitMaps(17, true);
 
     book->cancelOrder(7);
+
+    std::cout << limit1->getLeftChild()->getLimitPrice() << std::endl;
+    std::cout << limit2->getParent()->getLimitPrice() << std::endl;
+    std::cout << limit3->getLeftChild() << std::endl;
+    std::cout << limit4->getLeftChild()->getLimitPrice() << std::endl;
+    std::cout << limit4->getRightChild()->getLimitPrice() << std::endl;
+    std::cout << limit4->getParent()->getLimitPrice() << std::endl;
 
     // Clear the maps and release memory
     delete book;
