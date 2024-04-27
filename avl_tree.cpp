@@ -47,6 +47,7 @@ avl *avl_tree::rr_rotat(avl *parent) {
    avl *t;
    t = parent->r;
    parent->r = t->l;
+   
    t->l = parent;
    cout<<"Right-Right Rotation";
    return t;

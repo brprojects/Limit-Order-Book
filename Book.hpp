@@ -44,12 +44,12 @@ public:
     std::vector<int> postOrderTreeTraversal(Limit* root);
 
     void updateLimitHeightsOnInsert(Limit* limit);
-    int limitHeightDifference(Limit *);
-    Limit* rr_rotate(Limit *);
-    Limit* ll_rotate(Limit *);
-    Limit* lr_rotate(Limit*);
-    Limit* rl_rotate(Limit *);
-    Limit* balance(Limit *);
+    int limitHeightDifference(Limit* limit);
+    Limit* rr_rotate(Limit* limit);
+    Limit* ll_rotate(Limit* limit);
+    Limit* lr_rotate(Limit* limit);
+    Limit* rl_rotate(Limit* limit);
+    Limit* balance(Limit* limit);
 
 };
 

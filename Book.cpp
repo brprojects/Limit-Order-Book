@@ -85,9 +85,11 @@ Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
     if (limit->getLimitPrice() < root->getLimitPrice())
     {
         root->setLeftChild(insert(root->getLeftChild(), limit, root));
+        root = balance(root);
     } else if (limit->getLimitPrice() > root->getLimitPrice()) 
     {
         root->setRightChild(insert(root->getRightChild(), limit, root));
+        root = balance(root);
     }
 
     return root;
@@ -288,9 +290,63 @@ void Book::updateLimitHeightsOnInsert(Limit* limit)
 }
 
 // Get height difference between a limits children
-int Book::limitHeightDifference(Limit *t) {
-    int l_height = t->getLeftChild()->getHeight();
-    int r_height = t->getRightChild()->getHeight();
+int Book::limitHeightDifference(Limit* limit) {
+    int l_height = (limit->getLeftChild() != nullptr) ? limit->getLeftChild()->getHeight() : 0;
+    int r_height = (limit->getRightChild() != nullptr) ? limit->getRightChild()->getHeight() : 0;
     int b_factor = l_height - r_height;
     return b_factor;
+}
+
+Limit* Book::rr_rotate(Limit* parent) {
+    Limit* newParent = parent->getRightChild();
+    parent->setRightChild(newParent->getLeftChild());
+    if (newParent->getLeftChild() != nullptr)
+    {
+        newParent->getLeftChild()->setParent(parent);
+    }
+    newParent->setLeftChild(parent);
+    newParent->setParent(parent->getParent());
+    parent->setParent(newParent);
+    return newParent;
+}
+
+Limit* Book::ll_rotate(Limit* parent) {
+    Limit* newParent = parent->getLeftChild();
+    parent->setLeftChild(newParent->getRightChild());
+    if (newParent->getRightChild() != nullptr)
+    {
+        newParent->getRightChild()->setParent(parent);
+    }
+    newParent->setRightChild(parent);
+    newParent->setParent(parent->getParent());
+    parent->setParent(newParent);
+    return newParent;
+}
+
+Limit* Book::rl_rotate(Limit* parent) {
+    Limit* newParent = parent->getRightChild();
+    parent->setRightChild(ll_rotate(newParent));
+    return rr_rotate(parent);
+}
+
+Limit* Book::lr_rotate(Limit* parent) {
+    Limit* newParent = parent->getLeftChild();
+    parent->setLeftChild(rr_rotate(newParent));
+    return ll_rotate(parent);
+}
+
+Limit* Book::balance(Limit* limit) {
+    int bal_factor = limitHeightDifference(limit);
+    if (bal_factor > 1) {
+        if (limitHeightDifference(limit->getLeftChild()) > 0)
+            limit = ll_rotate(limit);
+        else
+            limit = lr_rotate(limit);
+    } else if (bal_factor < -1) {
+        if (limitHeightDifference(limit->getRightChild()) > 0)
+            limit = rl_rotate(limit);
+        else
+            limit = rr_rotate(limit);
+    }
+    return limit;
 }
