@@ -79,14 +79,13 @@ Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
     if (root == nullptr)
     {
         limit->setParent(parent);
-        updateLimitHeightsOnInsert(limit);
         return limit;
     }
     if (limit->getLimitPrice() < root->getLimitPrice())
     {
         root->setLeftChild(insert(root->getLeftChild(), limit, root));
         root = balance(root);
-    } else if (limit->getLimitPrice() > root->getLimitPrice()) 
+    } else if (limit->getLimitPrice() > root->getLimitPrice())
     {
         root->setRightChild(insert(root->getRightChild(), limit, root));
         root = balance(root);
@@ -124,6 +123,7 @@ void Book::updateBookEdgeRemove(Limit* limit)
     }
 }
 
+// Change the root limit in the AVL tree if the root limit is deleted
 void Book::changeBookRoots(Limit* limit){
     auto& tree = limit->getBuyOrSell() ? buyTree : sellTree;
     if (limit == tree)
@@ -142,6 +142,32 @@ void Book::changeBookRoots(Limit* limit){
     }
 }
 
+// Delete a limit after it has been emptied
+void Book::deleteLimit(Limit* limit)
+{
+    updateBookEdgeRemove(limit);
+    deleteFromLimitMaps(limit->getLimitPrice(), limit->getBuyOrSell());
+    changeBookRoots(limit);
+
+    Limit* parent = limit->getParent();
+    int limitPrice = limit->getLimitPrice();
+    delete limit;
+    while (parent != nullptr)
+    {
+        parent = balance(parent);
+        if (parent->getParent() != nullptr)
+        {
+            if (parent->getParent()->getLimitPrice() > limitPrice)
+            {
+                parent->getParent()->setLeftChild(parent);
+            } else {
+                parent->getParent()->setRightChild(parent);
+            }
+        }
+        parent = parent->getParent();
+    }
+}
+
 // Delete an order from the book
 void Book::cancelOrder(int orderId)
 {
@@ -153,11 +179,7 @@ void Book::cancelOrder(int orderId)
         order->cancel();
             if (order->getParentLimit()->getSize() == 0)
             {
-                updateBookEdgeRemove(order->getParentLimit());
-
-                deleteFromLimitMaps(order->getParentLimit()->getLimitPrice(), buyOrSell);
-                changeBookRoots(order->getParentLimit());
-                delete order->getParentLimit();
+                deleteLimit(order->getParentLimit());
             }
         deleteFromOrderMap(orderId);
         delete order;
@@ -205,6 +227,99 @@ void Book::deleteFromLimitMaps(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     limitMap.erase(limitPrice);
+}
+
+// Get the height of a limit in a binary tree
+int Book::getLimitHeight(Limit* limit) const {
+    int h = 0;
+    if (limit != nullptr) {
+        int l_height = getLimitHeight(limit->getLeftChild());
+        int r_height = getLimitHeight(limit->getRightChild());
+        int max_height = std::max(l_height, r_height);
+        h = max_height + 1;
+    }
+    return h;
+}
+
+// Get height difference between a limits children
+int Book::limitHeightDifference(Limit* limit) {
+    int l_height = getLimitHeight(limit->getLeftChild());
+    int r_height = getLimitHeight(limit->getRightChild());
+    int b_factor = l_height - r_height;
+    return b_factor;
+}
+
+// RR rotation for AVL restructure
+Limit* Book::rr_rotate(Limit* parent) {
+    Limit* newParent = parent->getRightChild();
+    parent->setRightChild(newParent->getLeftChild());
+    if (newParent->getLeftChild() != nullptr)
+    {
+        newParent->getLeftChild()->setParent(parent);
+    }
+    newParent->setLeftChild(parent);
+    if (parent->getParent() != nullptr)
+    {
+        newParent->setParent(parent->getParent());
+    } else {
+        newParent->setParent(nullptr);
+        auto& tree = parent->getBuyOrSell() ? buyTree : sellTree;
+        tree = newParent;
+    }
+    parent->setParent(newParent);
+    return newParent;
+}
+
+// LL rotation for AVL restructure
+Limit* Book::ll_rotate(Limit* parent) {
+    Limit* newParent = parent->getLeftChild();
+    parent->setLeftChild(newParent->getRightChild());
+    if (newParent->getRightChild() != nullptr)
+    {
+        newParent->getRightChild()->setParent(parent);
+    }
+    newParent->setRightChild(parent);
+    if (parent->getParent() != nullptr)
+    {
+        newParent->setParent(parent->getParent());
+    } else {
+        newParent->setParent(nullptr);
+        auto& tree = parent->getBuyOrSell() ? buyTree : sellTree;
+        tree = newParent;
+    }
+    parent->setParent(newParent);
+    return newParent;
+}
+
+// RL rotation for AVL restructure
+Limit* Book::rl_rotate(Limit* parent) {
+    Limit* newParent = parent->getRightChild();
+    parent->setRightChild(ll_rotate(newParent));
+    return rr_rotate(parent);
+}
+
+// LR rotation for AVL restructure
+Limit* Book::lr_rotate(Limit* parent) {
+    Limit* newParent = parent->getLeftChild();
+    parent->setLeftChild(rr_rotate(newParent));
+    return ll_rotate(parent);
+}
+
+// Check if the AVL tree needs to be restructured
+Limit* Book::balance(Limit* limit) {
+    int bal_factor = limitHeightDifference(limit);
+    if (bal_factor > 1) {
+        if (limitHeightDifference(limit->getLeftChild()) >= 0)
+            limit = ll_rotate(limit);
+        else
+            limit = lr_rotate(limit);
+    } else if (bal_factor < -1) {
+        if (limitHeightDifference(limit->getRightChild()) > 0)
+            limit = rl_rotate(limit);
+        else
+            limit = rr_rotate(limit);
+    }
+    return limit;
 }
 
 void Book::printLimit(int limitPrice, bool buyOrSell) const
@@ -275,78 +390,4 @@ std::vector<int> Book::postOrderTreeTraversal(Limit* root)
     result.push_back(root->getLimitPrice());
 
     return result;
-}
-
-// Update limit heights when a limit is added
-void Book::updateLimitHeightsOnInsert(Limit* limit)
-{
-    int i = 2;
-    while (limit->getParent() != nullptr && limit->getParent()->getHeight() < i)
-    {
-        limit->getParent()->setHeight(i);
-        i++;
-        limit = limit->getParent();
-    }
-}
-
-// Get height difference between a limits children
-int Book::limitHeightDifference(Limit* limit) {
-    int l_height = (limit->getLeftChild() != nullptr) ? limit->getLeftChild()->getHeight() : 0;
-    int r_height = (limit->getRightChild() != nullptr) ? limit->getRightChild()->getHeight() : 0;
-    int b_factor = l_height - r_height;
-    return b_factor;
-}
-
-Limit* Book::rr_rotate(Limit* parent) {
-    Limit* newParent = parent->getRightChild();
-    parent->setRightChild(newParent->getLeftChild());
-    if (newParent->getLeftChild() != nullptr)
-    {
-        newParent->getLeftChild()->setParent(parent);
-    }
-    newParent->setLeftChild(parent);
-    newParent->setParent(parent->getParent());
-    parent->setParent(newParent);
-    return newParent;
-}
-
-Limit* Book::ll_rotate(Limit* parent) {
-    Limit* newParent = parent->getLeftChild();
-    parent->setLeftChild(newParent->getRightChild());
-    if (newParent->getRightChild() != nullptr)
-    {
-        newParent->getRightChild()->setParent(parent);
-    }
-    newParent->setRightChild(parent);
-    newParent->setParent(parent->getParent());
-    parent->setParent(newParent);
-    return newParent;
-}
-
-Limit* Book::rl_rotate(Limit* parent) {
-    Limit* newParent = parent->getRightChild();
-    parent->setRightChild(ll_rotate(newParent));
-    return rr_rotate(parent);
-}
-
-Limit* Book::lr_rotate(Limit* parent) {
-    Limit* newParent = parent->getLeftChild();
-    parent->setLeftChild(rr_rotate(newParent));
-    return ll_rotate(parent);
-}
-
-Limit* Book::balance(Limit* limit) {
-    int bal_factor = limitHeightDifference(limit);
-    if (bal_factor > 1) {
-        if (limitHeightDifference(limit->getLeftChild()) > 0)
-            limit = ll_rotate(limit);
-        else
-            limit = lr_rotate(limit);
-    } else if (bal_factor < -1) {
-        if (limitHeightDifference(limit->getRightChild()) > 0)
-            limit = rl_rotate(limit);
-        else
-            limit = rr_rotate(limit);
-    }
-    return limit;
 }

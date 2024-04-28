@@ -136,26 +136,26 @@ TEST_F(LimitOrderBookTests, TestTreeHeightsCorrect){
     book->addOrder(5, true, 80, 20);
     Limit* limit1 = book->searchLimitMaps(20, true);
 
-    EXPECT_EQ(limit1->getHeight(), 1);
+    EXPECT_EQ(book->getLimitHeight(limit1), 1);
 
     book->addOrder(6, true, 80, 15);
     Limit* limit2 = book->searchLimitMaps(15, true);
 
-    EXPECT_EQ(limit2->getHeight(), 1);
-    EXPECT_EQ(limit1->getHeight(), 2);
+    EXPECT_EQ(book->getLimitHeight(limit2), 1);
+    EXPECT_EQ(book->getLimitHeight(limit1), 2);
 
     book->addOrder(7, true, 80, 25);
     Limit* limit3 = book->searchLimitMaps(25, true);
 
-    EXPECT_EQ(limit3->getHeight(), 1);
-    EXPECT_EQ(limit1->getHeight(), 2);
+    EXPECT_EQ(book->getLimitHeight(limit3), 1);
+    EXPECT_EQ(book->getLimitHeight(limit1), 2);
 
     book->addOrder(8, true, 80, 10);
     Limit* limit4 = book->searchLimitMaps(10, true);
 
-    EXPECT_EQ(limit4->getHeight(), 1);
-    EXPECT_EQ(limit2->getHeight(), 2);
-    EXPECT_EQ(limit1->getHeight(), 3);
+    EXPECT_EQ(book->getLimitHeight(limit4), 1);
+    EXPECT_EQ(book->getLimitHeight(limit2), 2);
+    EXPECT_EQ(book->getLimitHeight(limit1), 3);
 
     book->addOrder(9, true, 80, 5);
 }
@@ -380,8 +380,8 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnInsert){
     book->addOrder(6, true, 80, 15);
     book->addOrder(7, true, 80, 25);
     book->addOrder(8, true, 80, 10);
-    book->addOrder(5, true, 80, 17);
-    book->addOrder(6, true, 80, 30);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 30);
 
     Limit* limit1 = book->searchLimitMaps(20, true);
     Limit* limit2 = book->searchLimitMaps(25, true);
@@ -392,7 +392,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnInsert){
     EXPECT_EQ(limit2->getRightChild()->getLimitPrice(), 30);
     EXPECT_EQ(limit3->getParent()->getLimitPrice(), 25);
 
-    book->addOrder(7, true, 80, 35);
+    book->addOrder(11, true, 80, 35);
 
     Limit* limit4 = book->searchLimitMaps(35, true);
 
@@ -425,8 +425,8 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateOnInsert){
     book->addOrder(6, true, 80, 15);
     book->addOrder(7, true, 80, 25);
     book->addOrder(8, true, 80, 10);
-    book->addOrder(5, true, 80, 22);
-    book->addOrder(6, true, 80, 30);
+    book->addOrder(9, true, 80, 22);
+    book->addOrder(10, true, 80, 30);
 
     Limit* limit1 = book->searchLimitMaps(20, true);
     Limit* limit2 = book->searchLimitMaps(15, true);
@@ -437,7 +437,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateOnInsert){
     EXPECT_EQ(limit2->getLeftChild()->getLimitPrice(), 10);
     EXPECT_EQ(limit3->getParent()->getLimitPrice(), 15);
 
-    book->addOrder(7, true, 80, 5);
+    book->addOrder(11, true, 80, 5);
 
     Limit* limit4 = book->searchLimitMaps(5, true);
 
@@ -465,19 +465,19 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
-TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateOnInsert){
+TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateOnInsert){
     book->addOrder(5, true, 80, 20);
     book->addOrder(6, true, 80, 15);
     book->addOrder(7, true, 80, 25);
     book->addOrder(8, true, 80, 10);
-    book->addOrder(5, true, 80, 17);
-    book->addOrder(6, true, 80, 24);
-    book->addOrder(5, true, 80, 30);
-    book->addOrder(6, true, 80, 5);
-    book->addOrder(7, true, 80, 28);
-    book->addOrder(8, true, 80, 35);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 24);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 5);
+    book->addOrder(13, true, 80, 28);
+    book->addOrder(14, true, 80, 35);
 
-    book->addOrder(5, true, 80, 26);
+    book->addOrder(15, true, 80, 26);
 
     std::vector<int> expectedInOrder = {5, 10, 15, 17, 20, 24, 25, 26, 28, 30, 35};
     std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
@@ -495,19 +495,19 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
-TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateOnInsert){
+TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateOnInsert){
     book->addOrder(5, true, 80, 20);
     book->addOrder(6, true, 80, 15);
     book->addOrder(7, true, 80, 25);
     book->addOrder(8, true, 80, 10);
-    book->addOrder(5, true, 80, 17);
-    book->addOrder(6, true, 80, 24);
-    book->addOrder(5, true, 80, 30);
-    book->addOrder(6, true, 80, 5);
-    book->addOrder(7, true, 80, 13);
-    book->addOrder(8, true, 80, 35);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 24);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 5);
+    book->addOrder(13, true, 80, 13);
+    book->addOrder(14, true, 80, 35);
 
-    book->addOrder(5, true, 80, 12);
+    book->addOrder(15, true, 80, 12);
 
     std::vector<int> expectedInOrder = {5, 10, 12, 13, 15, 17, 20, 24, 25, 30, 35};
     std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
@@ -525,22 +525,382 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
-
-
 TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateRootOnInsert){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 543, 81);
+    book->addOrder(113, false, 46, 82);
 
+    std::vector<int> expectedInOrder = {80, 81, 82};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {81, 80, 82};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {80, 82, 81};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnInsert){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 543, 79);
+    book->addOrder(113, true, 46, 78);
 
-}
+    std::vector<int> expectedInOrder = {78, 79, 80};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
 
-TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnInsert){
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {79, 78, 80};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {78, 80, 79};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
 
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnInsert){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 543, 81);
+    book->addOrder(113, false, 46, 82);
 
+    std::vector<int> expectedInOrder = {80, 81, 82};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {81, 80, 82};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {80, 82, 81};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnInsert){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(113, true, 46, 78);
+    book->addOrder(112, true, 543, 79);
+
+    std::vector<int> expectedInOrder = {78, 79, 80};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {79, 78, 80};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {78, 80, 79};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnDelete){
+    book->addOrder(5, true, 80, 20);
+    book->addOrder(6, true, 80, 15);
+    book->addOrder(7, true, 80, 25);
+    book->addOrder(8, true, 80, 10);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 22);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 27);
+    book->addOrder(13, true, 80, 35);
+
+
+    Limit* limit1 = book->searchLimitMaps(20, true);
+    Limit* limit2 = book->searchLimitMaps(25, true);
+    Limit* limit3 = book->searchLimitMaps(30, true);
+    Limit* limit4 = book->searchLimitMaps(35, true);
+    Limit* limit5 = book->searchLimitMaps(27, true);
+    
+
+    EXPECT_EQ(limit1->getRightChild()->getLimitPrice(), 25);
+    EXPECT_EQ(limit2->getParent()->getLimitPrice(), 20);
+    EXPECT_EQ(limit2->getRightChild()->getLimitPrice(), 30);
+    EXPECT_EQ(limit2->getLeftChild()->getLimitPrice(), 22);
+    EXPECT_EQ(limit3->getParent()->getLimitPrice(), 25);
+    EXPECT_EQ(limit3->getLeftChild()->getLimitPrice(), 27);
+    EXPECT_EQ(limit3->getRightChild()->getLimitPrice(), 35);
+    EXPECT_EQ(limit4->getParent()->getLimitPrice(), 30);
+    EXPECT_EQ(limit5->getParent()->getLimitPrice(), 30);
+
+
+    book->cancelOrder(10);
+
+    EXPECT_EQ(limit1->getRightChild()->getLimitPrice(), 30);
+    EXPECT_EQ(limit2->getParent()->getLimitPrice(), 30);
+    EXPECT_EQ(limit2->getLeftChild(), nullptr);
+    EXPECT_EQ(limit2->getRightChild()->getLimitPrice(), 27);
+    EXPECT_EQ(limit3->getParent()->getLimitPrice(), 20);
+    EXPECT_EQ(limit3->getLeftChild()->getLimitPrice(), 25);
+    EXPECT_EQ(limit3->getRightChild()->getLimitPrice(), 35);
+    EXPECT_EQ(limit4->getParent()->getLimitPrice(), 30);
+    EXPECT_EQ(limit5->getParent()->getLimitPrice(), 25);
+
+    std::vector<int> expectedInOrder = {10, 15, 17, 20, 25, 27, 30, 35};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {20, 15, 10, 17, 30, 25, 27, 35};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {10, 17, 15, 27, 25, 35, 30, 20};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateOnDelete){
+    book->addOrder(5, true, 80, 20);
+    book->addOrder(6, true, 80, 15);
+    book->addOrder(7, true, 80, 25);
+    book->addOrder(8, true, 80, 10);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 22);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 5);
+    book->addOrder(13, true, 80, 13);
+
+    Limit* limit1 = book->searchLimitMaps(20, true);
+    Limit* limit2 = book->searchLimitMaps(15, true);
+    Limit* limit3 = book->searchLimitMaps(10, true);
+    Limit* limit4 = book->searchLimitMaps(5, true);
+    Limit* limit5 = book->searchLimitMaps(13, true);
+
+    EXPECT_EQ(limit1->getLeftChild()->getLimitPrice(), 15);
+    EXPECT_EQ(limit2->getParent()->getLimitPrice(), 20);
+    EXPECT_EQ(limit2->getLeftChild()->getLimitPrice(), 10);
+    EXPECT_EQ(limit2->getRightChild()->getLimitPrice(), 17);
+    EXPECT_EQ(limit3->getParent()->getLimitPrice(), 15);
+    EXPECT_EQ(limit3->getRightChild()->getLimitPrice(), 13);
+    EXPECT_EQ(limit3->getLeftChild()->getLimitPrice(), 5);
+    EXPECT_EQ(limit4->getParent()->getLimitPrice(), 10);
+    EXPECT_EQ(limit5->getParent()->getLimitPrice(), 10);
+    
+    book->cancelOrder(9);
+
+    EXPECT_EQ(limit1->getLeftChild()->getLimitPrice(), 10);
+    EXPECT_EQ(limit2->getParent()->getLimitPrice(), 10);
+    EXPECT_EQ(limit2->getRightChild(), nullptr);
+    EXPECT_EQ(limit2->getLeftChild()->getLimitPrice(), 13);
+    EXPECT_EQ(limit3->getParent()->getLimitPrice(), 20);
+    EXPECT_EQ(limit3->getRightChild()->getLimitPrice(), 15);
+    EXPECT_EQ(limit3->getLeftChild()->getLimitPrice(), 5);
+    EXPECT_EQ(limit4->getParent()->getLimitPrice(), 10);
+    EXPECT_EQ(limit5->getParent()->getLimitPrice(), 15);
+
+    std::vector<int> expectedInOrder = {5, 10, 13, 15, 20, 22, 25, 30};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {20, 10, 5, 15, 13, 25, 22, 30};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {5, 13, 15, 10, 22, 30, 25, 20};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateOnDelete){
+    book->addOrder(5, true, 80, 20);
+    book->addOrder(6, true, 80, 15);
+    book->addOrder(7, true, 80, 25);
+    book->addOrder(8, true, 80, 10);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 24);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 5);
+    book->addOrder(13, true, 80, 23);
+    book->addOrder(14, true, 80, 28);
+    book->addOrder(15, true, 80, 35);
+    book->addOrder(16, true, 80, 26);
+    book->addOrder(17, true, 80, 29);
+
+    book->cancelOrder(13);
+
+    std::vector<int> expectedInOrder = {5, 10, 15, 17, 20, 24, 25, 26, 28, 29, 30, 35};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {20, 15, 10, 5, 17, 28, 25, 24, 26, 30, 29, 35};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {5, 10, 17, 15, 24, 26, 25, 29, 35, 30, 28, 20};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateOnDelete){
+    book->addOrder(5, true, 80, 20);
+    book->addOrder(6, true, 80, 15);
+    book->addOrder(7, true, 80, 25);
+    book->addOrder(8, true, 80, 10);
+    book->addOrder(9, true, 80, 17);
+    book->addOrder(10, true, 80, 24);
+    book->addOrder(11, true, 80, 30);
+    book->addOrder(12, true, 80, 5);
+    book->addOrder(13, true, 80, 13);
+    book->addOrder(14, true, 80, 19);
+    book->addOrder(15, true, 80, 35);
+    book->addOrder(16, true, 80, 12);
+    book->addOrder(17, true, 80, 14);
+
+    book->cancelOrder(14);
+
+    std::vector<int> expectedInOrder = {5, 10, 12, 13, 14, 15, 17, 20, 24, 25, 30, 35};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {20, 13, 10, 5, 12, 15, 14, 17, 25, 24, 30, 35};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {5, 12, 10, 14, 17, 15, 13, 24, 35, 30, 25, 20};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateRootOnDelete){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 43, 79);
+    book->addOrder(113, false, 543, 82);
+    book->addOrder(114, false, 46, 81);
+    book->addOrder(115, false, 46, 83);
+
+    book->cancelOrder(112);
+
+    std::vector<int> expectedInOrder = {80, 81, 82, 83};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {82, 80, 81, 83};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {81, 80, 83, 82};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getSellTree()->getLimitPrice(), 82);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnDelete){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 543, 78);
+    book->addOrder(113, true, 543, 81);
+    book->addOrder(114, true, 46, 77);
+    book->addOrder(115, true, 46, 79);
+
+    book->cancelOrder(113);
+
+    std::vector<int> expectedInOrder = {77, 78, 79, 80};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {78, 77, 80, 79};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {77, 79, 80, 78};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 78);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnDelete){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 43, 75);
+    book->addOrder(113, false, 543, 81);
+    book->addOrder(114, false, 46, 82);
+
+    book->cancelOrder(112);
+
+    std::vector<int> expectedInOrder = {80, 81, 82};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {81, 80, 82};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {80, 82, 81};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getSellTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
+}
+
+TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnDelete){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 46, 78);
+    book->addOrder(113, true, 46, 85);
+    book->addOrder(114, true, 543, 79);
+
+    book->cancelOrder(113);
+
+    std::vector<int> expectedInOrder = {78, 79, 80};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {79, 78, 80};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {78, 80, 79};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
 }
 
 TEST_F(LimitOrderBookTests, TestBookEdgeLowestSell){
@@ -548,21 +908,5 @@ TEST_F(LimitOrderBookTests, TestBookEdgeLowestSell){
 }
 
 TEST_F(LimitOrderBookTests, TestBookEdgeHighestBuy){
-
-}
-
-TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnDelete){
-
-}
-
-TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateOnDelete){
-
-}
-
-TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateOnDelete){
-
-}
-
-TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateOnDelete){
 
 }

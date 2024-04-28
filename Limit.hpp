@@ -9,7 +9,6 @@ private:
     int size;
     int totalVolume;
     bool buyOrSell;
-    int height;
     Limit *parent;
     Limit *leftChild;
     Limit *rightChild;
@@ -26,14 +25,12 @@ public:
     int getSize() const;
     int getTotalVolume() const;
     bool getBuyOrSell() const;
-    int getHeight() const;
     Limit* getParent() const;
     Limit* getLeftChild() const;
     Limit* getRightChild() const;
     void setParent(Limit* newParent);
     void setLeftChild(Limit* newLeftChild);
     void setRightChild(Limit* newRightChild);
-    void setHeight(int newHeight);
 
     void append(Order *_order);
 
