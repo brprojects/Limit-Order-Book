@@ -6,7 +6,7 @@ Order::Order(int _idNumber, bool _buyOrSell, int _shares, int _limit)
     : idNumber(_idNumber), buyOrSell(_buyOrSell), shares(_shares), limit(_limit), 
     nextOrder(nullptr), prevOrder(nullptr), parentLimit(nullptr) {}
 
-int Order::getOrderSize() const
+int Order::getShares() const
 {
     return shares;
 }
@@ -24,6 +24,11 @@ bool Order::getBuyOrSell() const
 Limit* Order::getParentLimit() const
 {
     return parentLimit;
+}
+
+void Order::partiallyFillOrder(int orderedShares)
+{
+    shares -= orderedShares;
 }
 
 // Remove order from its parent limit

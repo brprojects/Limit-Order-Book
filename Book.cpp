@@ -37,6 +37,16 @@ Limit* Book::getSellTree() const
     return sellTree;
 }
 
+Limit* Book::getLowestSell() const
+{
+    return lowestSell;
+}
+
+Limit* Book::getHighestBuy() const
+{
+    return highestBuy;
+}
+
 // Add a new order to the book
 void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
@@ -50,6 +60,31 @@ void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
         addLimit(limitPrice, newOrder->getBuyOrSell());
     }
     limitMap.at(limitPrice)->append(newOrder);
+}
+
+// Execute a market order
+void Book::marketOrder(int orderId, bool buyOrSell, int shares)
+{
+    // TODO: What to do if the book is empty and can't complete market order
+    auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
+
+    while (bookEdge->getHeadOrder()->getShares() <= shares)
+    {
+        shares -= bookEdge->getHeadOrder()->getShares();
+        Order* headOrder = bookEdge->getHeadOrder();
+        headOrder->cancel();
+        if (bookEdge->getSize() == 0)
+        {
+            deleteLimit(bookEdge);
+        }
+        deleteFromOrderMap(headOrder->getOrderId());
+        delete headOrder;
+        std::cout << bookEdge->getHeadOrder()->getShares() << std::endl;
+    }
+    if (shares != 0)
+    {
+        bookEdge->getHeadOrder()->partiallyFillOrder(shares);
+    }
 }
 
 // Add a new limit to the book
@@ -116,10 +151,32 @@ void Book::updateBookEdgeInsert(Limit* newLimit)
 void Book::updateBookEdgeRemove(Limit* limit)
 {
     auto& bookEdge = limit->getBuyOrSell() ? highestBuy : lowestSell;
+    auto& tree = limit->getBuyOrSell() ? buyTree : sellTree;
+
     if (limit == bookEdge)
     {
-        // Need to use a balanced tree for this to work (AVL Tree)
-        bookEdge = bookEdge->getParent();
+        if (bookEdge != tree)
+        {
+            if (limit->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
+            } else if (!limit->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            {
+                bookEdge = bookEdge->getRightChild();
+            } else {
+            bookEdge = bookEdge->getParent();
+            }
+        } else {
+            if (limit->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
+            } else if (!limit->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            {
+                bookEdge = bookEdge->getRightChild();
+            } else {
+            bookEdge = nullptr;
+            }
+        }
     }
 }
 

@@ -152,7 +152,7 @@ void Limit::append(Order *order)
             tailOrder = order;
         }
         size += 1;
-        totalVolume += order->getOrderSize();
+        totalVolume += order->getShares();
         order->parentLimit = this;
 }
 

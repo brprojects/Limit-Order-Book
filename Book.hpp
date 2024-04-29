@@ -17,33 +17,37 @@ private:
     std::unordered_map<int, Limit*> limitBuyMap;
     std::unordered_map<int, Limit*> limitSellMap;
 
-public:
-    Book();
-    ~Book();
-
-    Limit* getBuyTree() const;
-    Limit* getSellTree() const;
-
-    void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
     void addLimit(int limitPrice, bool buyOrSell);
     Limit* insert(Limit* root, Limit* limit, Limit* parent=nullptr);
     void updateBookEdgeInsert(Limit* newLimit);
     void updateBookEdgeRemove(Limit* limit);
     void changeBookRoots(Limit* limit);
     void deleteLimit(Limit* limit);
-    void cancelOrder(int orderId);
-    Order* searchOrderMap(int orderId) const;
     void deleteFromOrderMap(int orderId);
-    Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
 
-    int getLimitHeight(Limit* limit) const;
     int limitHeightDifference(Limit* limit);
     Limit* rr_rotate(Limit* limit);
     Limit* ll_rotate(Limit* limit);
     Limit* lr_rotate(Limit* limit);
     Limit* rl_rotate(Limit* limit);
     Limit* balance(Limit* limit);
+
+public:
+    Book();
+    ~Book();
+
+    Limit* getBuyTree() const;
+    Limit* getSellTree() const;
+    Limit* getLowestSell() const;
+    Limit* getHighestBuy() const;
+
+    void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    void marketOrder(int orderId, bool buyOrSell, int shares);
+    void cancelOrder(int orderId);
+    int getLimitHeight(Limit* limit) const;
+    Order* searchOrderMap(int orderId) const;
+    Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
     
     void printLimit(int limitPrice, bool buyOrSell) const;
     void printOrder(int orderId) const;

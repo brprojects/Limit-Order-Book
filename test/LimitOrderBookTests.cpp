@@ -28,7 +28,7 @@ TEST_F(LimitOrderBookTests, TestAddingAnOrder) {
 
     book->addOrder(357, true, 27, 100);
 
-    EXPECT_EQ(book->searchOrderMap(357)->getOrderSize(), 27);
+    EXPECT_EQ(book->searchOrderMap(357)->getShares(), 27);
     EXPECT_EQ(book->searchLimitMaps(100, true)->getTotalVolume(), 27);
     EXPECT_EQ(book->searchLimitMaps(20, false), nullptr);
 
@@ -87,6 +87,18 @@ TEST_F(LimitOrderBookTests, TestLimitHeadOrderChangeOnOrderCancel){
     book->cancelOrder(5);
     
     EXPECT_EQ(limit->getHeadOrder()->getOrderId(), 6);
+}
+
+TEST_F(LimitOrderBookTests, TestLimitHeadOrderChangeOnOrderCancelLeavingEmptyLimit){
+    book->addOrder(5, true, 80, 20);
+
+    Limit* limit = book->searchLimitMaps(20, true);
+
+    EXPECT_EQ(limit->getHeadOrder()->getOrderId(), 5);
+
+    book->cancelOrder(5);
+    
+    EXPECT_EQ(limit->getHeadOrder(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestCancelOrderLeavingEmptyLimit){
@@ -546,6 +558,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateRootOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
+    EXPECT_EQ(book->getSellTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnInsert){
@@ -569,7 +582,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
-
+    EXPECT_EQ(book->getBuyTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnInsert){
@@ -593,6 +606,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
+    EXPECT_EQ(book->getSellTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnInsert){
@@ -616,6 +630,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnInsert){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
+    EXPECT_EQ(book->getBuyTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnDelete){
@@ -822,6 +837,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateRootOnDelete){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getSellTree()->getLimitPrice(), 82);
+    EXPECT_EQ(book->getSellTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnDelete){
@@ -849,6 +865,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLLRotateRootOnDelete){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 78);
+    EXPECT_EQ(book->getBuyTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnDelete){
@@ -875,6 +892,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeRLRotateRootOnDelete){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getSellTree()->getLimitPrice(), 81);
+    EXPECT_EQ(book->getSellTree()->getParent(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnDelete){
@@ -901,12 +919,222 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnDelete){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 
     EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 79);
+    EXPECT_EQ(book->getBuyTree()->getParent(), nullptr);
 }
 
-TEST_F(LimitOrderBookTests, TestBookEdgeLowestSell){
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnInsertLowestSell){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 46, 78);
 
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 78);
+    
+    book->addOrder(113, false, 46, 77);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 77);
+
+    book->addOrder(114, false, 46, 85);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 77);
 }
 
-TEST_F(LimitOrderBookTests, TestBookEdgeHighestBuy){
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnInsertHighestBuy){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 46, 78);
 
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
+    
+    book->addOrder(113, true, 46, 82);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 82);
+
+    book->addOrder(114, true, 46, 70);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 82);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteLowestSell){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 46, 78);
+    book->addOrder(113, false, 46, 77);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 77);
+    
+    book->cancelOrder(113);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 78);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteHighestBuy){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 46, 78);
+    book->addOrder(113, true, 46, 82);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 82);
+    
+    book->cancelOrder(113);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteHighestBuyEmptyTree){
+    book->addOrder(111, true, 43, 80);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
+
+    book->cancelOrder(111);
+
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteLowestSellEmptyTree){
+    book->addOrder(111, false, 43, 80);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 80);
+
+    book->cancelOrder(111);
+
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteHighestBuyRootLimit){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 43, 75);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
+
+    book->cancelOrder(111);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 75);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteLowestSellRootLimit){
+    book->addOrder(111, false, 10, 80);
+    book->addOrder(112, false, 20, 85);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 80);
+
+    book->cancelOrder(111);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 85);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteHighestBuyNotParent){
+    book->addOrder(111, true, 43, 80);
+    book->addOrder(112, true, 43, 75);
+    book->addOrder(113, true, 43, 85);
+    book->addOrder(114, true, 43, 82);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 85);
+
+    book->cancelOrder(113);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 82);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteLowestSellNotParent){
+    book->addOrder(111, false, 43, 80);
+    book->addOrder(112, false, 43, 75);
+    book->addOrder(113, false, 43, 85);
+    book->addOrder(114, false, 43, 76);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 75);
+
+    book->cancelOrder(112);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 76);
+}
+
+TEST_F(LimitOrderBookTests, TestBuyMarketOrderFilledBySingleOrder){
+    book->addOrder(111, false, 100, 80);
+    book->addOrder(112, false, 30, 80);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 100);
+
+    book->marketOrder(113, true, 20);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestSellMarketOrderFilledBySingleOrder){
+    book->addOrder(111, true, 100, 80);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 100);
+
+    book->marketOrder(112, false, 98);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 2);
+}
+
+TEST_F(LimitOrderBookTests, TestBuyMarketOrderFilledByMultipleOrders){
+    book->addOrder(111, false, 10, 80);
+    book->addOrder(112, false, 10, 80);
+    book->addOrder(113, false, 10, 80);
+    book->addOrder(114, false, 30, 80);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 10);
+
+    book->marketOrder(115, true, 40);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 20);
+}
+
+TEST_F(LimitOrderBookTests, TestSellMarketOrderFilledByMultipleOrders){
+    book->addOrder(111, true, 5, 80);
+    book->addOrder(112, true, 7, 80);
+    book->addOrder(113, true, 31, 80);
+    book->addOrder(114, true, 9, 80);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
+
+    book->marketOrder(115, false, 12);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 31);
+}
+
+TEST_F(LimitOrderBookTests, TestBuyMarketOrderPerfectlyFilledBySingleOrder){
+    book->addOrder(111, false, 15, 80);
+    book->addOrder(112, false, 21, 80);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 15);
+
+    book->marketOrder(115, true, 15);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 21);
+}
+
+TEST_F(LimitOrderBookTests, TestSellMarketOrderPerfectlyFilledBySingleOrder){
+    book->addOrder(111, true, 1153, 80);
+    book->addOrder(112, true, 832, 80);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 1153);
+
+    book->marketOrder(115, false, 1153);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 832);
+}
+
+TEST_F(LimitOrderBookTests, TestBuyMarketOrderGoingIntoDifferentLimit){
+    book->addOrder(111, false, 10, 80);
+    book->addOrder(112, false, 5, 80);
+    book->addOrder(113, false, 20, 85);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 10);
+
+    book->marketOrder(115, true, 20);
+
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 15);
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 85);
+}
+
+TEST_F(LimitOrderBookTests, TestSellMarketOrderGoingIntoDifferentLimit){
+    book->addOrder(111, true, 10, 80);
+    book->addOrder(112, true, 20, 80);
+    book->addOrder(113, true, 7, 85);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 7);
+
+    book->marketOrder(115, false, 18);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 19);
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
 }

@@ -17,10 +17,11 @@ private:
 public:
     Order(int _idNumber, bool _buyOrSell, int _shares, int _limit);
 
-    int getOrderSize() const;
+    int getShares() const;
     int getOrderId() const;
     bool getBuyOrSell() const;
     Limit* getParentLimit() const;
+    void partiallyFillOrder(int orderedShares);
 
     void cancel();
 
