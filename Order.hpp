@@ -24,6 +24,7 @@ public:
     void partiallyFillOrder(int orderedShares);
 
     void cancel();
+    void modifyOrder(int newShares, int newLimit);
 
     void print() const;
 };

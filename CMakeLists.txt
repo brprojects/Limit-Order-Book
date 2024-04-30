@@ -20,7 +20,6 @@ set(Sources
 )
 
 # add_executable(${PROJECT_NAME} main.cpp ${Sources} ${Headers})
-# add_executable(${PROJECT_NAME} avl_tree.cpp)
 add_library(${PROJECT_NAME} STATIC ${Sources} ${Headers})
 
 add_subdirectory(test)

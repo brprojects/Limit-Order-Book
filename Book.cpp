@@ -108,6 +108,30 @@ void Book::addLimit(int limitPrice, bool buyOrSell)
     }
 }
 
+// Modify an existing order
+void Book::modifyOrder(int orderId, int newShares, int newLimit)
+{
+    Order* order = searchOrderMap(orderId);
+    if (order != nullptr)
+    {
+        order->cancel();
+            if (order->getParentLimit()->getSize() == 0)
+            {
+                deleteLimit(order->getParentLimit());
+            }
+        
+        order->modifyOrder(newShares, newLimit);
+        auto& limitMap = order->getBuyOrSell() ? limitBuyMap : limitSellMap;
+
+        if (limitMap.find(newLimit) == limitMap.end())
+        {
+            addLimit(newLimit, order->getBuyOrSell());
+        }
+        limitMap.at(newLimit)->append(order);
+    }
+    
+}
+
 // Insert a limit into its binary search tree
 Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
 {
@@ -229,7 +253,6 @@ void Book::deleteLimit(Limit* limit)
 void Book::cancelOrder(int orderId)
 {
     Order* order = searchOrderMap(orderId);
-    bool buyOrSell = order->getBuyOrSell();
 
     if (order != nullptr)
     {

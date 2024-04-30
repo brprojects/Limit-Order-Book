@@ -1138,3 +1138,56 @@ TEST_F(LimitOrderBookTests, TestSellMarketOrderGoingIntoDifferentLimit){
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 19);
     EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
 }
+
+TEST_F(LimitOrderBookTests, TestModifyOrderToExistingLimit){
+    book->addOrder(111, true, 10, 80);
+    book->addOrder(112, true, 20, 80);
+    book->addOrder(113, true, 7, 85);
+    book->addOrder(114, true, 14, 85);
+
+    book->modifyOrder(113, 40, 80);
+
+    Limit* limit1 = book->searchLimitMaps(80, true);
+    Limit* limit2 = book->searchLimitMaps(85, true);
+
+    EXPECT_EQ(limit1->getHeadOrder()->getOrderId(), 111);
+    EXPECT_EQ(limit2->getHeadOrder()->getOrderId(), 114);
+    EXPECT_EQ(limit1->getTotalVolume(), 70);
+    EXPECT_EQ(limit2->getTotalVolume(), 14);
+}
+
+TEST_F(LimitOrderBookTests, TestModifyOrderToNewLimit){
+    book->addOrder(111, true, 10, 80);
+    book->addOrder(112, true, 20, 80);
+    book->addOrder(113, true, 7, 85);
+    book->addOrder(114, true, 14, 85);
+
+    book->modifyOrder(113, 40, 82);
+
+    Limit* limit1 = book->searchLimitMaps(82, true);
+    Limit* limit2 = book->searchLimitMaps(85, true);
+
+    EXPECT_EQ(limit1->getHeadOrder()->getOrderId(), 113);
+    EXPECT_EQ(limit2->getHeadOrder()->getOrderId(), 114);
+    EXPECT_EQ(limit1->getTotalVolume(), 40);
+    EXPECT_EQ(limit2->getTotalVolume(), 14);
+}
+
+TEST_F(LimitOrderBookTests, TestModifyOrderInvalidOrderId){
+    book->addOrder(111, true, 10, 80);
+    book->addOrder(112, true, 20, 80);
+    book->addOrder(113, true, 7, 85);
+    book->addOrder(114, true, 14, 85);
+
+    book->modifyOrder(110, 40, 82);
+
+    Limit* limit1 = book->searchLimitMaps(80, true);
+    Limit* limit2 = book->searchLimitMaps(85, true);
+
+    EXPECT_EQ(limit1->getHeadOrder()->getOrderId(), 111);
+    EXPECT_EQ(limit2->getHeadOrder()->getOrderId(), 113);
+    EXPECT_EQ(limit1->getTotalVolume(), 30);
+    EXPECT_EQ(limit2->getTotalVolume(), 21);
+    EXPECT_EQ(book->searchLimitMaps(82, true), nullptr);
+    EXPECT_EQ(book->searchOrderMap(110), nullptr);
+}

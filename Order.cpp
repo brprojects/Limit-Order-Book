@@ -53,6 +53,12 @@ void Order::cancel()
     parentLimit->size -= 1;
 }
 
+void Order::modifyOrder(int newShares, int newLimit)
+{
+    shares = newShares;
+    limit = newLimit;
+}
+
 void Order::print() const
 {
     std::cout << "Order ID: " << idNumber 

@@ -42,9 +42,17 @@ public:
     Limit* getLowestSell() const;
     Limit* getHighestBuy() const;
 
-    void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
     void marketOrder(int orderId, bool buyOrSell, int shares);
+    void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    // void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
+    // void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     void cancelOrder(int orderId);
+    // void cancelStopOrder(int orderId);
+    // void cancelStopLimitOrder(int orderId);
+    void modifyOrder(int orderId, int newShares, int newLimit);
+    // void modifyStopOrder(int orderId, int newShares, int newStopPrice);
+    // void modifyStopLimitOrder(int orderId, int newShares, int newLimit, int newStopPrice);
+
     int getLimitHeight(Limit* limit) const;
     Order* searchOrderMap(int orderId) const;
     Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
