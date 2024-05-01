@@ -47,28 +47,13 @@ Limit* Book::getHighestBuy() const
     return highestBuy;
 }
 
-// Add a new order to the book
-void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
-{
-    Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
-    orderMap.emplace(orderId, newOrder);
-
-    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
-
-    if (limitMap.find(limitPrice) == limitMap.end())
-    {
-        addLimit(limitPrice, newOrder->getBuyOrSell());
-    }
-    limitMap.at(limitPrice)->append(newOrder);
-}
-
 // Execute a market order
 void Book::marketOrder(int orderId, bool buyOrSell, int shares)
 {
     // TODO: What to do if the book is empty and can't complete market order
     auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
 
-    while (bookEdge->getHeadOrder()->getShares() <= shares)
+    while (bookEdge != nullptr && bookEdge->getHeadOrder()->getShares() <= shares)
     {
         shares -= bookEdge->getHeadOrder()->getShares();
         Order* headOrder = bookEdge->getHeadOrder();
@@ -81,30 +66,42 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
         delete headOrder;
         std::cout << bookEdge->getHeadOrder()->getShares() << std::endl;
     }
-    if (shares != 0)
+    if (bookEdge != nullptr && shares != 0)
     {
         bookEdge->getHeadOrder()->partiallyFillOrder(shares);
     }
 }
 
-// Add a new limit to the book
-void Book::addLimit(int limitPrice, bool buyOrSell)
+// Add a new order to the book
+void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
+    // TODO: Need to account for order being executed immediately
+    Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
+    orderMap.emplace(orderId, newOrder);
+
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
-    auto& tree = buyOrSell ? buyTree : sellTree;
-    auto& bookEdge = buyOrSell ? highestBuy : lowestSell;
 
-    Limit* newLimit = new Limit(limitPrice, buyOrSell);
-    limitMap.emplace(limitPrice, newLimit);
+    if (limitMap.find(limitPrice) == limitMap.end())
+    {
+        addLimit(limitPrice, newOrder->getBuyOrSell());
+    }
+    limitMap.at(limitPrice)->append(newOrder);
+}
 
-    if (tree == nullptr)
+// Delete an order from the book
+void Book::cancelOrder(int orderId)
+{
+    Order* order = searchOrderMap(orderId);
+
+    if (order != nullptr)
     {
-        tree = newLimit;
-        bookEdge = newLimit;
-    } else
-    {
-        Limit* root = insert(tree, newLimit);
-        updateBookEdgeInsert(newLimit);
+        order->cancel();
+            if (order->getParentLimit()->getSize() == 0)
+            {
+                deleteLimit(order->getParentLimit());
+            }
+        deleteFromOrderMap(orderId);
+        delete order;
     }
 }
 
@@ -129,7 +126,139 @@ void Book::modifyOrder(int orderId, int newShares, int newLimit)
         }
         limitMap.at(newLimit)->append(order);
     }
+}
+
+// Get the height of a limit in a binary tree
+int Book::getLimitHeight(Limit* limit) const {
+    int h = 0;
+    if (limit != nullptr) {
+        int l_height = getLimitHeight(limit->getLeftChild());
+        int r_height = getLimitHeight(limit->getRightChild());
+        int max_height = std::max(l_height, r_height);
+        h = max_height + 1;
+    }
+    return h;
+}
+
+// Search the order map to find an order
+Order* Book::searchOrderMap(int orderId) const
+{
+    auto it = orderMap.find(orderId);
+    if (it != orderMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No order number " << orderId << std::endl;
+        return nullptr;
+    }
+}
+
+// Search the limit maps to find a limit
+Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
+{
+    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
+    auto it = limitMap.find(limitPrice);
+    if (it != limitMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No "<< (buyOrSell ? "buy " : "sell ") << " limit at " << limitPrice << std::endl;
+        return nullptr;
+    }
+}
+
+void Book::printLimit(int limitPrice, bool buyOrSell) const
+{
+    searchLimitMaps(limitPrice, buyOrSell)->print();
+}
+
+void Book::printOrder(int orderId) const
+{
+    searchOrderMap(orderId)->print();
+}
+
+void Book::printBookEdges() const
+{
+    std::cout << "Buy edge: " << highestBuy->getLimitPrice() 
+    << "Sell edge: " << lowestSell->getLimitPrice() << std::endl;
+}
+
+// In order traversal of the binary search tree
+std::vector<int> Book::inOrderTreeTraversal(Limit* root)
+{
+    std::vector<int> result;
+    if (root == nullptr)
+        return result;
+
+    std::vector<int> leftSubtree = inOrderTreeTraversal(root->getLeftChild());
+    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
     
+    result.push_back(root->getLimitPrice());
+
+    std::vector<int> rightSubtree = inOrderTreeTraversal(root->getRightChild());
+    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
+
+    return result;
+}
+
+// Pre order traversal of the binary search tree
+std::vector<int> Book::preOrderTreeTraversal(Limit* root)
+{
+    std::vector<int> result;
+    if (root == nullptr)
+        return result;
+
+    result.push_back(root->getLimitPrice());
+
+    std::vector<int> leftSubtree = preOrderTreeTraversal(root->getLeftChild());
+    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
+    
+    std::vector<int> rightSubtree = preOrderTreeTraversal(root->getRightChild());
+    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
+
+    return result;
+}
+
+// Post order traversal of the binary search tree
+std::vector<int> Book::postOrderTreeTraversal(Limit* root)
+{
+    std::vector<int> result;
+    if (root == nullptr)
+        return result;
+
+    std::vector<int> leftSubtree = postOrderTreeTraversal(root->getLeftChild());
+    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
+    
+    std::vector<int> rightSubtree = postOrderTreeTraversal(root->getRightChild());
+    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
+    
+    result.push_back(root->getLimitPrice());
+
+    return result;
+}
+
+// Add a new limit to the book
+void Book::addLimit(int limitPrice, bool buyOrSell)
+{
+    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+    auto& tree = buyOrSell ? buyTree : sellTree;
+    auto& bookEdge = buyOrSell ? highestBuy : lowestSell;
+
+    Limit* newLimit = new Limit(limitPrice, buyOrSell);
+    limitMap.emplace(limitPrice, newLimit);
+
+    if (tree == nullptr)
+    {
+        tree = newLimit;
+        bookEdge = newLimit;
+    } else
+    {
+        Limit* root = insert(tree, newLimit);
+        updateBookEdgeInsert(newLimit);
+    }
 }
 
 // Insert a limit into its binary search tree
@@ -249,57 +378,10 @@ void Book::deleteLimit(Limit* limit)
     }
 }
 
-// Delete an order from the book
-void Book::cancelOrder(int orderId)
-{
-    Order* order = searchOrderMap(orderId);
-
-    if (order != nullptr)
-    {
-        order->cancel();
-            if (order->getParentLimit()->getSize() == 0)
-            {
-                deleteLimit(order->getParentLimit());
-            }
-        deleteFromOrderMap(orderId);
-        delete order;
-    }
-}
-
-// Search the order map to find an order
-Order* Book::searchOrderMap(int orderId) const
-{
-    auto it = orderMap.find(orderId);
-    if (it != orderMap.end())
-    {
-        return it->second;
-    } else
-    {
-        std::cout << "No order number " << orderId << std::endl;
-        return nullptr;
-    }
-}
-
 // Delete an order from the order map
 void Book::deleteFromOrderMap(int orderId)
 {
     orderMap.erase(orderId);
-}
-
-// Search the limit maps to find a limit
-Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
-{
-    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
-
-    auto it = limitMap.find(limitPrice);
-    if (it != limitMap.end())
-    {
-        return it->second;
-    } else
-    {
-        std::cout << "No "<< (buyOrSell ? "buy " : "sell ") << " limit at " << limitPrice << std::endl;
-        return nullptr;
-    }
 }
 
 // Delete a limit from the limit maps
@@ -307,18 +389,6 @@ void Book::deleteFromLimitMaps(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     limitMap.erase(limitPrice);
-}
-
-// Get the height of a limit in a binary tree
-int Book::getLimitHeight(Limit* limit) const {
-    int h = 0;
-    if (limit != nullptr) {
-        int l_height = getLimitHeight(limit->getLeftChild());
-        int r_height = getLimitHeight(limit->getRightChild());
-        int max_height = std::max(l_height, r_height);
-        h = max_height + 1;
-    }
-    return h;
 }
 
 // Get height difference between a limits children
@@ -371,18 +441,18 @@ Limit* Book::ll_rotate(Limit* parent) {
     return newParent;
 }
 
-// RL rotation for AVL restructure
-Limit* Book::rl_rotate(Limit* parent) {
-    Limit* newParent = parent->getRightChild();
-    parent->setRightChild(ll_rotate(newParent));
-    return rr_rotate(parent);
-}
-
 // LR rotation for AVL restructure
 Limit* Book::lr_rotate(Limit* parent) {
     Limit* newParent = parent->getLeftChild();
     parent->setLeftChild(rr_rotate(newParent));
     return ll_rotate(parent);
+}
+
+// RL rotation for AVL restructure
+Limit* Book::rl_rotate(Limit* parent) {
+    Limit* newParent = parent->getRightChild();
+    parent->setRightChild(ll_rotate(newParent));
+    return rr_rotate(parent);
 }
 
 // Check if the AVL tree needs to be restructured
@@ -400,74 +470,4 @@ Limit* Book::balance(Limit* limit) {
             limit = rr_rotate(limit);
     }
     return limit;
-}
-
-void Book::printLimit(int limitPrice, bool buyOrSell) const
-{
-    searchLimitMaps(limitPrice, buyOrSell)->print();
-}
-
-void Book::printOrder(int orderId) const
-{
-    searchOrderMap(orderId)->print();
-}
-
-void Book::printBookEdges() const
-{
-    std::cout << "Buy edge: " << highestBuy->getLimitPrice() 
-    << "Sell edge: " << lowestSell->getLimitPrice() << std::endl;
-}
-
-// In order traversal of the binary search tree
-std::vector<int> Book::inOrderTreeTraversal(Limit* root)
-{
-    std::vector<int> result;
-    if (root == nullptr)
-        return result;
-
-    std::vector<int> leftSubtree = inOrderTreeTraversal(root->getLeftChild());
-    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
-    
-    result.push_back(root->getLimitPrice());
-
-    std::vector<int> rightSubtree = inOrderTreeTraversal(root->getRightChild());
-    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
-
-    return result;
-}
-
-// Pre order traversal of the binary search tree
-std::vector<int> Book::preOrderTreeTraversal(Limit* root)
-{
-    std::vector<int> result;
-    if (root == nullptr)
-        return result;
-
-    result.push_back(root->getLimitPrice());
-
-    std::vector<int> leftSubtree = preOrderTreeTraversal(root->getLeftChild());
-    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
-    
-    std::vector<int> rightSubtree = preOrderTreeTraversal(root->getRightChild());
-    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
-
-    return result;
-}
-
-// Post order traversal of the binary search tree
-std::vector<int> Book::postOrderTreeTraversal(Limit* root)
-{
-    std::vector<int> result;
-    if (root == nullptr)
-        return result;
-
-    std::vector<int> leftSubtree = postOrderTreeTraversal(root->getLeftChild());
-    result.insert(result.end(), leftSubtree.begin(), leftSubtree.end());
-    
-    std::vector<int> rightSubtree = postOrderTreeTraversal(root->getRightChild());
-    result.insert(result.end(), rightSubtree.begin(), rightSubtree.end());
-    
-    result.push_back(root->getLimitPrice());
-
-    return result;
 }

@@ -12,11 +12,13 @@ set(Headers
     Book.hpp
     Limit.hpp
     Order.hpp
+    OrderPipeline.hpp
 )
 set(Sources
     Book.cpp
     Limit.cpp
     Order.cpp
+    OrderPipeline.cpp
 )
 
 # add_executable(${PROJECT_NAME} main.cpp ${Sources} ${Headers})

@@ -38,3 +38,10 @@ GetVolumeAtLimit – O(1)
 GetBestBid/Offer – O(1)
 
 where M is the number of price Limits (generally << N the number of orders).  Some strategy for keeping the limit tree balanced should be used because the nature of markets is such that orders will be being removed from one side of the tree as they’re being added to the other.  Keep in mind, though, that it is important to be able to update Book.lowestSell/highestBuy in O(1) time when a limit is deleted (which is why each Limit has a Limit *parent) so that GetBestBid/Offer can remain O(1).
+
+Bid and sale limits can share the same hash table as they will be at opposite ends of the table (apart from orders that cross).
+
+Assumptions:
+- Order Shares > 0
+- Limit Prices > 0
+- Order Id Numbers are unique
