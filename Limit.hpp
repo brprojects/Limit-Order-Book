@@ -31,6 +31,7 @@ public:
     void setParent(Limit* newParent);
     void setLeftChild(Limit* newLeftChild);
     void setRightChild(Limit* newRightChild);
+    void partiallyFillTotalVolume(int orderedShares);
 
     void append(Order *_order);
 

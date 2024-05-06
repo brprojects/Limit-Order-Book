@@ -47,10 +47,10 @@ Limit* Book::getHighestBuy() const
     return highestBuy;
 }
 
-// Execute a market order
+// Execute a market order. If the book is empty and can't complete market 
+// order then market order just doesn't execute and is forgotten.
 void Book::marketOrder(int orderId, bool buyOrSell, int shares)
 {
-    // TODO: What to do if the book is empty and can't complete market order
     auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
 
     while (bookEdge != nullptr && bookEdge->getHeadOrder()->getShares() <= shares)
@@ -64,7 +64,6 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
         }
         deleteFromOrderMap(headOrder->getOrderId());
         delete headOrder;
-        std::cout << bookEdge->getHeadOrder()->getShares() << std::endl;
     }
     if (bookEdge != nullptr && shares != 0)
     {
@@ -75,17 +74,22 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
 // Add a new order to the book
 void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
-    // TODO: Need to account for order being executed immediately
-    Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
-    orderMap.emplace(orderId, newOrder);
-
-    auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
-
-    if (limitMap.find(limitPrice) == limitMap.end())
+    // Account for order being executed immediately
+    shares = limitOrderAsMarketOrder(orderId, buyOrSell, shares, limitPrice);
+    
+    if (shares != 0)
     {
-        addLimit(limitPrice, newOrder->getBuyOrSell());
+        Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
+        orderMap.emplace(orderId, newOrder);
+
+        auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
+        if (limitMap.find(limitPrice) == limitMap.end())
+        {
+            addLimit(limitPrice, newOrder->getBuyOrSell());
+        }
+        limitMap.at(limitPrice)->append(newOrder);
     }
-    limitMap.at(limitPrice)->append(newOrder);
 }
 
 // Delete an order from the book
@@ -389,6 +393,40 @@ void Book::deleteFromLimitMaps(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     limitMap.erase(limitPrice);
+}
+
+// When a limit order overlaps with the highest buy or lowest sell, immediately
+// execute it as if it were a market order
+int Book::limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
+{
+    if (buyOrSell)
+    {
+        while (lowestSell != nullptr && shares != 0 && lowestSell->getLimitPrice() <= limitPrice)
+        {
+            if (shares <= lowestSell->getTotalVolume())
+            {
+                marketOrder(orderId, buyOrSell, shares);
+                return 0;
+            } else {
+                shares -= lowestSell->getTotalVolume();
+                marketOrder(orderId, buyOrSell, lowestSell->getTotalVolume());
+            }
+        }
+        return shares;
+    } else {
+        while (highestBuy != nullptr && shares != 0 && highestBuy->getLimitPrice() >= limitPrice)
+        {
+            if (shares <= highestBuy->getTotalVolume())
+            {
+                marketOrder(orderId, buyOrSell, shares);
+                return 0;
+            } else {
+                shares -= highestBuy->getTotalVolume();
+                marketOrder(orderId, buyOrSell, highestBuy->getTotalVolume());
+            }
+        }
+        return shares;
+    }
 }
 
 // Get height difference between a limits children

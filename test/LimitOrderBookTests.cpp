@@ -32,9 +32,9 @@ TEST_F(LimitOrderBookTests, TestAddingAnOrder) {
     EXPECT_EQ(book->searchLimitMaps(100, true)->getTotalVolume(), 27);
     EXPECT_EQ(book->searchLimitMaps(20, false), nullptr);
 
-    book->addOrder(222, false, 35, 100);
+    book->addOrder(222, false, 35, 110);
 
-    EXPECT_EQ(book->searchLimitMaps(100, false)->getTotalVolume(), 35);
+    EXPECT_EQ(book->searchLimitMaps(110, false)->getTotalVolume(), 35);
 }
 
 TEST_F(LimitOrderBookTests, TestMultipleOrdersInALimit){
@@ -1072,10 +1072,12 @@ TEST_F(LimitOrderBookTests, TestBuyMarketOrderFilledByMultipleOrders){
     book->addOrder(114, false, 30, 80);
 
     EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 10);
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 60);
 
     book->marketOrder(115, true, 40);
 
     EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 20);
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 20);
 }
 
 TEST_F(LimitOrderBookTests, TestSellMarketOrderFilledByMultipleOrders){
@@ -1085,10 +1087,12 @@ TEST_F(LimitOrderBookTests, TestSellMarketOrderFilledByMultipleOrders){
     book->addOrder(114, true, 9, 80);
 
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 52);
 
     book->marketOrder(115, false, 12);
 
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 31);
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 40);
 }
 
 TEST_F(LimitOrderBookTests, TestBuyMarketOrderPerfectlyFilledBySingleOrder){
@@ -1137,6 +1141,25 @@ TEST_F(LimitOrderBookTests, TestSellMarketOrderGoingIntoDifferentLimit){
 
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 19);
     EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestBuyMarketOrderEmptySellTree){
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+
+    book->marketOrder(115, true, 18);
+
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestSellMarketOrderEmptyBuyTree){
+    book->addOrder(111, true, 10, 80);
+    book->addOrder(113, true, 7, 85);
+
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 7);
+
+    book->marketOrder(115, false, 18);
+
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestModifyOrderToExistingLimit){
@@ -1190,4 +1213,68 @@ TEST_F(LimitOrderBookTests, TestModifyOrderInvalidOrderId){
     EXPECT_EQ(limit2->getTotalVolume(), 21);
     EXPECT_EQ(book->searchLimitMaps(82, true), nullptr);
     EXPECT_EQ(book->searchOrderMap(110), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingSellLimitOrderWhichIsAMarketOrder) {
+    book->addOrder(357, true, 40, 100);
+    book->addOrder(222, false, 35, 100);
+
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 5);
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingSellLimitOrderWhichIsAMarketOrderAcrossMultipleLimits) {
+    book->addOrder(357, true, 15, 110);
+    book->addOrder(358, true, 35, 100);
+    book->addOrder(359, true, 35, 100);
+    book->addOrder(222, false, 40, 100);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 100);
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 45);
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 10);
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingSellLimitOrderWhichIsOnlyPartiallyAMarketOrder) {
+    book->addOrder(357, true, 40, 100);
+    book->addOrder(357, true, 40, 99);
+    book->addOrder(222, false, 45, 100);
+
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 40);
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 40);
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 5);
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 5);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingBuyLimitOrderWhichIsAMarketOrder) {
+    book->addOrder(357, false, 40, 100);
+    book->addOrder(222, true, 35, 100);
+
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 5);
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 5);
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingBuyLimitOrderWhichIsAMarketOrderAcrossMultipleLimits) {
+    book->addOrder(357, false, 15, 90);
+    book->addOrder(358, false, 35, 100);
+    book->addOrder(359, false, 35, 100);
+    book->addOrder(222, true, 40, 100);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 100);
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 45);
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 10);
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestAddingBuyLimitOrderWhichIsOnlyPartiallyAMarketOrder) {
+    book->addOrder(357, false, 40, 100);
+    book->addOrder(357, false, 40, 101);
+    book->addOrder(222, true, 45, 100);
+
+    EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 40);
+    EXPECT_EQ(book->getLowestSell()->getHeadOrder()->getShares(), 40);
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 5);
+    EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
 }

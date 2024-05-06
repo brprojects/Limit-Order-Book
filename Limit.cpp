@@ -141,6 +141,11 @@ void Limit::setRightChild(Limit* newRightChild)
     rightChild = newRightChild;
 }
 
+void Limit::partiallyFillTotalVolume(int orderedShares)
+{
+    totalVolume -= orderedShares;
+}
+
 // Add an order to the limit
 void Limit::append(Order *order)
 {

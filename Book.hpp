@@ -25,6 +25,7 @@ private:
     void deleteLimit(Limit* limit);
     void deleteFromOrderMap(int orderId);
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
+    int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
 
     int limitHeightDifference(Limit* limit);
     Limit* rr_rotate(Limit* limit);

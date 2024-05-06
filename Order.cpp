@@ -29,6 +29,7 @@ Limit* Order::getParentLimit() const
 void Order::partiallyFillOrder(int orderedShares)
 {
     shares -= orderedShares;
+    parentLimit->partiallyFillTotalVolume(orderedShares);
 }
 
 // Remove order from its parent limit
