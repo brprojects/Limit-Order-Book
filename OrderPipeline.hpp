@@ -10,7 +10,7 @@ class Book;
 
 class OrderPipeline {
 private:
-    Book& book;
+    Book* book;
 
     using OrderFunction = void(OrderPipeline::*)(std::istringstream&);
     std::unordered_map<std::string_view, OrderFunction> orderFunctions;
@@ -21,7 +21,7 @@ private:
     void processModifyOrder(std::istringstream& iss);
 
 public:
-    OrderPipeline(Book& book);
+    OrderPipeline(Book* book);
     void processOrdersFromFile(const std::string& filename);
 };
 

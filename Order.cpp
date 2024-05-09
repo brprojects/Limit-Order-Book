@@ -58,6 +58,9 @@ void Order::modifyOrder(int newShares, int newLimit)
 {
     shares = newShares;
     limit = newLimit;
+    nextOrder = nullptr;
+    prevOrder = nullptr;
+    parentLimit = nullptr;
 }
 
 void Order::print() const

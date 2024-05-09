@@ -1,12 +1,12 @@
 #include "OrderPipeline.hpp"
 #include "Book.hpp"
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <random>
 
-OrderPipeline::OrderPipeline(Book& book) : book(book) {
+OrderPipeline::OrderPipeline(Book* book) : book(book) {
     orderFunctions = {
         {"Market", &OrderPipeline::processMarketOrder},
         {"Add", &OrderPipeline::processAddOrder},
@@ -43,24 +43,24 @@ void OrderPipeline::processMarketOrder(std::istringstream& iss) {
     int orderId, shares;
     bool buyOrSell;
     iss >> orderId >> buyOrSell >> shares;
-    book.marketOrder(orderId, buyOrSell, shares);
+    book->marketOrder(orderId, buyOrSell, shares);
 }
 
 void OrderPipeline::processAddOrder(std::istringstream& iss) {
     int orderId, shares, limitPrice;
     bool buyOrSell;
     iss >> orderId >> buyOrSell >> shares >> limitPrice;
-    book.addOrder(orderId, buyOrSell, shares, limitPrice);
+    book->addOrder(orderId, buyOrSell, shares, limitPrice);
 }
 
 void OrderPipeline::processCancelOrder(std::istringstream& iss) {
     int orderId;
     iss >> orderId;
-    book.cancelOrder(orderId);
+    book->cancelOrder(orderId);
 }
 
 void OrderPipeline::processModifyOrder(std::istringstream& iss) {
     int orderId, newShares, newLimit;
     iss >> orderId >> newShares >> newLimit;
-    book.modifyOrder(orderId, newShares, newLimit);
+    book->modifyOrder(orderId, newShares, newLimit);
 }

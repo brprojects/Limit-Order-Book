@@ -3,6 +3,7 @@
 #include "Limit.hpp"
 #include <iostream>
 #include <algorithm>
+#include <random>
 
 Book::Book() : buyTree(nullptr), sellTree(nullptr), lowestSell(nullptr), highestBuy(nullptr){}
 
@@ -172,6 +173,17 @@ Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
         std::cout << "No "<< (buyOrSell ? "buy " : "sell ") << " limit at " << limitPrice << std::endl;
         return nullptr;
     }
+}
+
+Order* Book::getRandomOrder(std::mt19937 gen) const
+{
+    // Generate a random index within the range of the hash map size
+    std::uniform_int_distribution<> mapDist(0, orderMap.size() - 1);
+    int randomIndex = mapDist(gen);
+
+    // Access the element at the random index directly
+    auto it = std::next(orderMap.begin(), randomIndex);
+    return it->second;
 }
 
 void Book::printLimit(int limitPrice, bool buyOrSell) const

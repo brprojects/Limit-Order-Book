@@ -13,16 +13,24 @@ set(Headers
     Limit.hpp
     Order.hpp
     OrderPipeline.hpp
+    GenerateOrders.hpp
 )
 set(Sources
     Book.cpp
     Limit.cpp
     Order.cpp
     OrderPipeline.cpp
+    GenerateOrders.cpp
 )
 
-# add_executable(${PROJECT_NAME} main.cpp ${Sources} ${Headers})
-add_library(${PROJECT_NAME} STATIC ${Sources} ${Headers})
+# Define the library target
+add_library(${PROJECT_NAME}_lib STATIC ${Sources} ${Headers})
+
+# Define the executable target
+add_executable(${PROJECT_NAME} main.cpp)
+
+# Link the executable with the library
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 
 add_subdirectory(test)
 

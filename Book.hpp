@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <random>
 
 class Limit;
 class Order;
@@ -57,6 +58,7 @@ public:
     int getLimitHeight(Limit* limit) const;
     Order* searchOrderMap(int orderId) const;
     Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
+    Order* getRandomOrder(std::mt19937 gen) const;
     
     void printLimit(int limitPrice, bool buyOrSell) const;
     void printOrder(int orderId) const;
