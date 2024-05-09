@@ -20,6 +20,7 @@ private:
     void modify();
     void add();
     void cancel();
+    void limitMarket();
 
 public:
     GenerateOrders(Book* book);

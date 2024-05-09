@@ -10,24 +10,19 @@
 int main() {
     Book* book = new Book();
 
-
-    // GenerateOrders generateOrders(book);
     OrderPipeline orderPipeline(book);
-
-    // generateOrders.createInitialOrders(10000, 300);
-
 
     orderPipeline.processOrdersFromFile("../initialOrders.txt");
 
+    GenerateOrders generateOrders(book);
+
+    // generateOrders.createInitialOrders(10000, 300);
     // generateOrders.createOrders(100000);
 
     // std::cout << book->getHighestBuy()->getTotalVolume() << std::endl;
     // std::cout << book->getLowestSell()->getTotalVolume() << std::endl;
     // book->printLimit(book->getHighestBuy()->getLimitPrice(), true);
     // book->printLimit(book->getLowestSell()->getLimitPrice(), false);
-
-
-
 
 
     // Start measuring time

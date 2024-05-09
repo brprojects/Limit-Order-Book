@@ -15,7 +15,7 @@ GenerateOrders::GenerateOrders(Book* _book) : book(_book), gen(rd()) {}
 
 void GenerateOrders::market()
 {
-    std::uniform_int_distribution<> sharesDist(1, 1000);
+    std::uniform_int_distribution<> sharesDist(1, 950);
     std::uniform_int_distribution<> buyOrSellDist(0, 1);
 
     int shares = sharesDist(gen);
@@ -43,11 +43,11 @@ void GenerateOrders::modify()
     {
         do {
             limitPrice = limitPriceDist(gen);
-        } while (limitPrice > book->getHighestBuy()->getLimitPrice());  
+        } while (limitPrice >= book->getLowestSell()->getLimitPrice());  
     } else {
         do {
             limitPrice = limitPriceDist(gen);
-        } while (limitPrice < book->getLowestSell()->getLimitPrice());  
+        } while (limitPrice <= book->getHighestBuy()->getLimitPrice());  
     }
     
     file << "Modify " << orderId << " " << shares << " " << limitPrice << std::endl;
@@ -77,6 +77,20 @@ void GenerateOrders::cancel()
     book->cancelOrder(orderId);
 }
 
+void GenerateOrders::limitMarket()
+{
+    std::uniform_int_distribution<> sharesDist(1, 1000);
+    std::normal_distribution<> limitPriceDist(book->getHighestBuy()->getLimitPrice(), 50);
+
+    int shares = sharesDist(gen);
+    int limitPrice = limitPriceDist(gen);
+    bool buyOrSell = limitPrice > book->getHighestBuy()->getLimitPrice();
+
+    file << "Add " << orderId << " " << buyOrSell << " " << shares << " " << limitPrice << std::endl;
+    book->addOrder(orderId, buyOrSell, shares, limitPrice);
+    orderId ++;
+}
+
 void GenerateOrders::createOrders(int numberOfOrders)
 {
     // Open a file named "orders.txt" for writing
@@ -90,12 +104,13 @@ void GenerateOrders::createOrders(int numberOfOrders)
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     // Define the probabilities and actions
-    std::vector<double> probabilities = {0.2, 0.2, 0.4, 0.2};
+    std::vector<double> probabilities = {0.15, 0.2, 0.4, 0.2, 0.05};
     std::vector<std::function<void()>> actions = {
         std::bind(&GenerateOrders::market, this),
         std::bind(&GenerateOrders::modify, this),
         std::bind(&GenerateOrders::add, this),
-        std::bind(&GenerateOrders::cancel, this)
+        std::bind(&GenerateOrders::cancel, this),
+        std::bind(&GenerateOrders::limitMarket, this)
     };
 
     // Calculate the cumulative probabilities
