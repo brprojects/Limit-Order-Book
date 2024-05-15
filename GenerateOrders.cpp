@@ -15,15 +15,21 @@ GenerateOrders::GenerateOrders(Book* _book) : book(_book), gen(rd()) {}
 
 void GenerateOrders::market()
 {
-    std::uniform_int_distribution<> sharesDist(1, 950);
+    std::uniform_int_distribution<> sharesDist(1, 1000);
     std::uniform_int_distribution<> buyOrSellDist(0, 1);
 
     int shares = sharesDist(gen);
     bool buyOrSell = buyOrSellDist(gen);
+    Order* order = book->getRandomOrder(gen);
 
-    file << "Market " << orderId << " " << buyOrSell << " " << shares << std::endl;
-    book->marketOrder(orderId, buyOrSell, shares);
-    orderId ++;
+    if (order != nullptr)
+    {
+        file << "Market " << orderId << " " << buyOrSell << " " << shares << std::endl;
+        book->marketOrder(orderId, buyOrSell, shares);
+        orderId ++;
+    } else {
+        add();
+    }
 }
 
 void GenerateOrders::modify()
@@ -35,33 +41,38 @@ void GenerateOrders::modify()
 
     Order* order = book->getRandomOrder(gen);
 
-    int orderId = order->getOrderId();
-    bool buyOrSell = order->getBuyOrSell();
-
-    int limitPrice;
-    if (buyOrSell)
+    if (order != nullptr)
     {
-        do {
-            limitPrice = limitPriceDist(gen);
-        } while (limitPrice >= book->getLowestSell()->getLimitPrice());  
+        int orderId = order->getOrderId();
+        bool buyOrSell = order->getBuyOrSell();
+
+        int limitPrice;
+        if (buyOrSell)
+        {
+            do {
+                limitPrice = limitPriceDist(gen);
+            } while (limitPrice >= book->getLowestSell()->getLimitPrice());  
+        } else {
+            do {
+                limitPrice = limitPriceDist(gen);
+            } while (limitPrice <= book->getHighestBuy()->getLimitPrice());  
+        }
+        
+        file << "Modify " << orderId << " " << shares << " " << limitPrice << std::endl;
+        book->modifyOrder(orderId, shares, limitPrice);
     } else {
-        do {
-            limitPrice = limitPriceDist(gen);
-        } while (limitPrice <= book->getHighestBuy()->getLimitPrice());  
+        add();
     }
-    
-    file << "Modify " << orderId << " " << shares << " " << limitPrice << std::endl;
-    book->modifyOrder(orderId, shares, limitPrice);
 }
 
 void GenerateOrders::add()
 {
     std::uniform_int_distribution<> sharesDist(1, 1000);
-    std::normal_distribution<> limitPriceDist(book->getHighestBuy()->getLimitPrice(), 50);
+    std::normal_distribution<> limitPriceDist(300, 50);
 
     int shares = sharesDist(gen);
     int limitPrice = limitPriceDist(gen);
-    bool buyOrSell = limitPrice < book->getHighestBuy()->getLimitPrice();
+    bool buyOrSell = limitPrice < 300;
 
     file << "Add " << orderId << " " << buyOrSell << " " << shares << " " << limitPrice << std::endl;
     book->addOrder(orderId, buyOrSell, shares, limitPrice);
@@ -71,10 +82,17 @@ void GenerateOrders::add()
 void GenerateOrders::cancel()
 {
     Order* order = book->getRandomOrder(gen);
-    int orderId = order->getOrderId();
 
-    file << "Cancel " << orderId << std::endl;
-    book->cancelOrder(orderId);
+    if (order != nullptr)
+    {
+        int orderId = order->getOrderId();
+
+        file << "Cancel " << orderId << std::endl;
+        book->cancelOrder(orderId);
+    } else {
+        add();
+    }
+    
 }
 
 void GenerateOrders::limitMarket()
@@ -104,7 +122,7 @@ void GenerateOrders::createOrders(int numberOfOrders)
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     // Define the probabilities and actions
-    std::vector<double> probabilities = {0.15, 0.2, 0.4, 0.2, 0.05};
+    std::vector<double> probabilities = {0, 0, 0.5, 0.5, 0};
     std::vector<std::function<void()>> actions = {
         std::bind(&GenerateOrders::market, this),
         std::bind(&GenerateOrders::modify, this),

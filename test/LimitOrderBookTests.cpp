@@ -301,6 +301,100 @@ TEST_F(LimitOrderBookTests, TestRemoveLimitWithTwoChildren_RightChildHasNoLeftCh
     EXPECT_EQ(limit3->getParent()->getLimitPrice(), 20);
 }
 
+TEST_F(LimitOrderBookTests, TestRemoveLimitWithTwoChildren_RightChildHasLeftChildWithRightChild){
+    book->addOrder(3, true, 80, 224);
+    book->addOrder(4, true, 80, 220);
+    book->addOrder(5, true, 80, 228);
+    book->addOrder(6, true, 80, 218);
+    book->addOrder(7, true, 80, 221);
+    book->addOrder(8, true, 80, 226);
+    book->addOrder(9, true, 80, 231);
+    book->addOrder(10, true, 80, 217);
+    book->addOrder(11, true, 80, 225);
+    book->addOrder(12, true, 80, 229);
+    book->addOrder(13, true, 80, 233);
+    book->addOrder(14, true, 80, 230);
+
+    std::vector<int> expectedInOrder = {217, 218, 220, 221, 224, 225, 226, 228, 229, 230, 231, 233};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {224, 220, 218, 217, 221, 228, 226, 225, 231, 229, 230, 233};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {217, 218, 221, 220, 225, 226, 230, 229, 233, 231, 228, 224};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    book->cancelOrder(5);
+
+    expectedInOrder = {217, 218, 220, 221, 224, 225, 226, 229, 230, 231, 233};
+    actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    expectedPreOrder = {224, 220, 218, 217, 221, 229, 226, 225, 231, 230, 233};
+    actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    expectedPostOrder = {217, 218, 221, 220, 225, 226, 230, 233, 231, 229, 224};
+    actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
+TEST_F(LimitOrderBookTests, TestRemoveLimitWithTwoChildren_RightChildHasLeftChildWithRightChild2){
+    book->addOrder(3, true, 80, 250);
+    book->addOrder(4, true, 80, 255);
+    book->addOrder(5, true, 80, 228);
+    book->addOrder(6, true, 80, 251);
+    book->addOrder(7, true, 80, 260);
+    book->addOrder(8, true, 80, 226);
+    book->addOrder(9, true, 80, 231);
+    book->addOrder(10, true, 80, 265);
+    book->addOrder(11, true, 80, 225);
+    book->addOrder(12, true, 80, 229);
+    book->addOrder(13, true, 80, 233);
+    book->addOrder(14, true, 80, 230);
+
+    std::vector<int> expectedInOrder = {225, 226, 228, 229, 230, 231, 233, 250, 251, 255, 260, 265};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {250, 228, 226, 225, 231, 229, 230, 233, 255, 251, 260, 265};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {225, 226, 230, 229, 233, 231, 228, 251, 265, 260, 255, 250};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    book->cancelOrder(5);
+
+    expectedInOrder = {225, 226, 229, 230, 231, 233, 250, 251, 255, 260, 265};
+    actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    expectedPreOrder = {250, 229, 226, 225, 231, 230, 233, 255, 251, 260, 265};
+    actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    expectedPostOrder = {225, 226, 230, 233, 231, 229, 251, 265, 260, 255, 250};
+    actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+}
+
 TEST_F(LimitOrderBookTests, TestEmptyingATree){
     book->addOrder(5, true, 80, 20);
 
@@ -385,6 +479,48 @@ TEST_F(LimitOrderBookTests, TestRemoveRootLimitWithTwoChildren_RightChildHasNoLe
     EXPECT_EQ(book->getBuyTree()->getLimitPrice(), 25);
     EXPECT_EQ(limit1->getParent()->getLimitPrice(), 25);
     EXPECT_EQ(limit2->getParent(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestRemoveRootLimitWithTwoChildren_RightChildHasLeftChildWithRightChild){
+    book->addOrder(5, true, 80, 228);
+    book->addOrder(6, true, 80, 226);
+    book->addOrder(7, true, 80, 231);
+    book->addOrder(8, true, 80, 225);
+    book->addOrder(9, true, 80, 229);
+    book->addOrder(10, true, 80, 233);
+    book->addOrder(11, true, 80, 230);
+
+    std::vector<int> expectedInOrder = {225, 226, 228, 229, 230, 231, 233};
+    std::vector<int> actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    std::vector<int> expectedPreOrder = {228, 226, 225, 231, 229, 230, 233};
+    std::vector<int> actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    std::vector<int> expectedPostOrder = {225, 226, 230, 229, 233, 231, 228};
+    std::vector<int> actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
+
+    book->cancelOrder(5);
+
+    expectedInOrder = {225, 226, 229, 230, 231, 233};
+    actualInOrder = book->inOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedInOrder, actualInOrder);
+
+    expectedPreOrder = {229, 226, 225, 231, 230, 233};
+    actualPreOrder = book->preOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPreOrder, actualPreOrder);
+
+    expectedPostOrder = {225, 226, 230, 233, 231, 229};
+    actualPostOrder = book->postOrderTreeTraversal(book->getBuyTree());
+
+    EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
 TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnInsert){

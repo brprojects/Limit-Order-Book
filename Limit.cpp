@@ -11,7 +11,6 @@ Limit::~Limit()
 {
     if (parent != nullptr) {
         bool leftOrRightChild = (limitPrice < parent->getLimitPrice());
-
         // Case 1: Node with only one child or no child
         if (leftChild == nullptr) {
             if (leftOrRightChild) {
@@ -35,6 +34,7 @@ Limit::~Limit()
 
         // Case 2: Node with two children
         Limit* temp = rightChild;
+
         while (temp->getLeftChild() != nullptr) 
         {
             temp = temp->getLeftChild();
@@ -42,10 +42,15 @@ Limit::~Limit()
 
         if (rightChild->getLeftChild() != nullptr)
         {
-            temp->getParent()->setLeftChild(nullptr);
+            temp->getParent()->setLeftChild(temp->getRightChild());
+            if (temp->getRightChild() != nullptr)
+            {
+                temp->getRightChild()->setParent(temp->getParent());
+            }
             temp->setRightChild(rightChild);
             rightChild->setParent(temp);
         }
+
         temp->setParent(parent);
         temp->setLeftChild(leftChild);
         leftChild->setParent(temp);
@@ -76,7 +81,11 @@ Limit::~Limit()
         }
         if (rightChild->getLeftChild() != nullptr)
         {
-            temp->getParent()->setLeftChild(nullptr);
+            temp->getParent()->setLeftChild(temp->getRightChild());
+            if (temp->getRightChild() != nullptr)
+            {
+                temp->getRightChild()->setParent(temp->getParent());
+            }
             temp->setRightChild(rightChild);
             rightChild->setParent(temp);
         }

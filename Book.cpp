@@ -102,7 +102,7 @@ void Book::cancelOrder(int orderId)
     {
         order->cancel();
             if (order->getParentLimit()->getSize() == 0)
-            {
+            {   
                 deleteLimit(order->getParentLimit());
             }
         deleteFromOrderMap(orderId);
@@ -135,14 +135,14 @@ void Book::modifyOrder(int orderId, int newShares, int newLimit)
 
 // Get the height of a limit in a binary tree
 int Book::getLimitHeight(Limit* limit) const {
-    int h = 0;
-    if (limit != nullptr) {
+    if (limit == nullptr) {
+        return 0; // Height of an empty tree is 0
+    } else {
         int l_height = getLimitHeight(limit->getLeftChild());
         int r_height = getLimitHeight(limit->getRightChild());
-        int max_height = std::max(l_height, r_height);
-        h = max_height + 1;
+        int max = std::max(l_height, r_height) + 1;
+        return max;
     }
-    return h;
 }
 
 // Search the order map to find an order
@@ -177,6 +177,8 @@ Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
 
 Order* Book::getRandomOrder(std::mt19937 gen) const
 {
+    if (orderMap.size() > 1000)
+    {
     // Generate a random index within the range of the hash map size
     std::uniform_int_distribution<> mapDist(0, orderMap.size() - 1);
     int randomIndex = mapDist(gen);
@@ -184,6 +186,9 @@ Order* Book::getRandomOrder(std::mt19937 gen) const
     // Access the element at the random index directly
     auto it = std::next(orderMap.begin(), randomIndex);
     return it->second;
+    }
+    return nullptr;
+    
 }
 
 void Book::printLimit(int limitPrice, bool buyOrSell) const
