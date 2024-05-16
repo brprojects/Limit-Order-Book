@@ -31,10 +31,14 @@ private:
     void updateBookEdgeInsert(Limit* newLimit);
     void updateBookEdgeRemove(Limit* limit);
     void updateStopBookEdgeInsert(Limit* newStop);
+    void updateStopBookEdgeRemove(Limit* stopLevel);
     void changeBookRoots(Limit* limit);
+    void changeStopBookRoots(Limit* stopLevel);
     void deleteLimit(Limit* limit);
+    void deleteStopLevel(Limit* limit);
     void deleteFromOrderMap(int orderId);
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
+    void deleteFromStopMap(int StopPrice);
     int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
 
     int limitHeightDifference(Limit* limit);
@@ -58,7 +62,7 @@ public:
     void cancelOrder(int orderId);
     void modifyOrder(int orderId, int newShares, int newLimit);
     void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
-    // void cancelStopOrder(int orderId);
+    void cancelStopOrder(int orderId);
     // void modifyStopOrder(int orderId, int newShares, int newStopPrice);
     // void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     // void cancelStopLimitOrder(int orderId);

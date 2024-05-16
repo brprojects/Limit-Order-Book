@@ -1429,3 +1429,63 @@ TEST_F(LimitOrderBookTests, TestAddingAStopOrder) {
 
     EXPECT_EQ(book->searchStopMap(110)->getTotalVolume(), 35);
 }
+
+TEST_F(LimitOrderBookTests, TestCancelStopOrderLeavingNonEmptyLimit){
+    book->addStopOrder(5, true, 80, 20);
+    book->addStopOrder(6, true, 32, 20);
+    book->addStopOrder(7, true, 111, 20);
+
+    EXPECT_EQ(book->searchStopMap(20)->getSize(), 3);
+    EXPECT_EQ(book->searchStopMap(20)->getTotalVolume(), 223);
+
+    book->cancelStopOrder(6);
+
+    EXPECT_EQ(book->searchStopMap(20)->getSize(), 2);
+    EXPECT_EQ(book->searchStopMap(20)->getTotalVolume(), 191);
+
+    book->cancelStopOrder(7);
+
+    EXPECT_EQ(book->searchStopMap(20)->getSize(), 1);
+    EXPECT_EQ(book->searchStopMap(20)->getTotalVolume(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestStopLevelHeadOrderChangeOnOrderCancel){
+    book->addStopOrder(5, true, 80, 20);
+    book->addStopOrder(6, true, 32, 20);
+    book->addStopOrder(7, true, 111, 20);
+
+    Limit* stop = book->searchStopMap(20);
+
+    EXPECT_EQ(stop->getHeadOrder()->getOrderId(), 5);
+
+    book->cancelStopOrder(5);
+    
+    EXPECT_EQ(stop->getHeadOrder()->getOrderId(), 6);
+}
+
+TEST_F(LimitOrderBookTests, TestStopLevelHeadOrderChangeOnOrderCancelLeavingEmptyLimit){
+    book->addStopOrder(5, true, 80, 20);
+
+    Limit* stop = book->searchStopMap(20);
+
+    EXPECT_EQ(stop->getHeadOrder()->getOrderId(), 5);
+
+    book->cancelStopOrder(5);
+    
+    EXPECT_EQ(stop->getHeadOrder(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestCancelStopOrderLeavingEmptyLimit){
+    book->addStopOrder(5, true, 80, 20);
+    book->addStopOrder(6, true, 80, 15);
+    Limit* stop1 = book->searchStopMap(20);
+    Limit* stop2 = book->searchStopMap(15);
+
+    EXPECT_EQ(stop2->getHeadOrder()->getOrderId(), 6);
+    EXPECT_EQ(stop1->getLeftChild()->getLimitPrice(), 15);
+
+    book->cancelStopOrder(6);
+    
+    EXPECT_EQ(book->searchLimitMaps(15, true), nullptr);
+    EXPECT_EQ(stop1->getLeftChild(), nullptr);
+}

@@ -142,7 +142,7 @@ void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
     
     if (shares != 0)
     {
-        Order* newOrder = new Order(orderId, buyOrSell, shares, 0);
+        Order* newOrder = new Order(orderId, buyOrSell, shares, stopPrice);
         orderMap.emplace(orderId, newOrder);
 
         if (stopMap.find(stopPrice) == stopMap.end())
@@ -150,6 +150,23 @@ void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
             addStop(stopPrice, newOrder->getBuyOrSell());
         }
         stopMap.at(stopPrice)->append(newOrder);
+    }
+}
+
+// Delete an stop order from the stop book
+void Book::cancelStopOrder(int orderId)
+{
+    Order* order = searchOrderMap(orderId);
+
+    if (order != nullptr)
+    {
+        order->cancel();
+            if (order->getParentLimit()->getSize() == 0)
+            {   
+                deleteStopLevel(order->getParentLimit());
+            }
+        deleteFromOrderMap(orderId);
+        delete order;
     }
 }
 
@@ -426,6 +443,39 @@ void Book::updateBookEdgeRemove(Limit* limit)
     }
 }
 
+// Update the edge of the stop book if current edge of the stopbook is emptied
+void Book::updateStopBookEdgeRemove(Limit* stopLevel)
+{
+    auto& bookEdge = stopLevel->getBuyOrSell() ? highestStopBuy : lowestStopSell;
+    auto& tree = stopLevel->getBuyOrSell() ? stopBuyTree : stopSellTree;
+
+    if (stopLevel == bookEdge)
+    {
+        if (bookEdge != tree)
+        {
+            if (stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
+            } else if (!stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            {
+                bookEdge = bookEdge->getRightChild();
+            } else {
+            bookEdge = bookEdge->getParent();
+            }
+        } else {
+            if (stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
+            } else if (!stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            {
+                bookEdge = bookEdge->getRightChild();
+            } else {
+            bookEdge = nullptr;
+            }
+        }
+    }
+}
+
 // Change the root limit in the AVL tree if the root limit is deleted
 void Book::changeBookRoots(Limit* limit){
     auto& tree = limit->getBuyOrSell() ? buyTree : sellTree;
@@ -441,6 +491,25 @@ void Book::changeBookRoots(Limit* limit){
         } else
         {
             tree = limit->getLeftChild();
+        }
+    }
+}
+
+// Change the root stop level in the AVL tree if the root stop level is deleted
+void Book::changeStopBookRoots(Limit* stopLevel){
+    auto& tree = stopLevel->getBuyOrSell() ? stopBuyTree : stopSellTree;
+    if (stopLevel == tree)
+    {
+        if (stopLevel->getRightChild() != nullptr)
+        {
+            tree = tree->getRightChild();
+            while (tree->getLeftChild() != nullptr)
+            {
+                tree = tree->getLeftChild();
+            }
+        } else
+        {
+            tree = stopLevel->getLeftChild();
         }
     }
 }
@@ -471,6 +540,32 @@ void Book::deleteLimit(Limit* limit)
     }
 }
 
+// Delete a stop level after it has been emptied
+void Book::deleteStopLevel(Limit* stopLevel)
+{
+    updateStopBookEdgeRemove(stopLevel);
+    deleteFromStopMap(stopLevel->getLimitPrice());
+    changeStopBookRoots(stopLevel);
+
+    Limit* parent = stopLevel->getParent();
+    int stopPrice = stopLevel->getLimitPrice();
+    delete stopLevel;
+    while (parent != nullptr)
+    {
+        parent = balance(parent);
+        if (parent->getParent() != nullptr)
+        {
+            if (parent->getParent()->getLimitPrice() > stopPrice)
+            {
+                parent->getParent()->setLeftChild(parent);
+            } else {
+                parent->getParent()->setRightChild(parent);
+            }
+        }
+        parent = parent->getParent();
+    }
+}
+
 // Delete an order from the order map
 void Book::deleteFromOrderMap(int orderId)
 {
@@ -482,6 +577,12 @@ void Book::deleteFromLimitMaps(int limitPrice, bool buyOrSell)
 {
     auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
     limitMap.erase(limitPrice);
+}
+
+// Delete a stop level from the stop map
+void Book::deleteFromStopMap(int stopPrice)
+{
+    stopMap.erase(stopPrice);
 }
 
 // When a limit order overlaps with the highest buy or lowest sell, immediately
