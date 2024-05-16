@@ -1414,3 +1414,18 @@ TEST_F(LimitOrderBookTests, TestAddingBuyLimitOrderWhichIsOnlyPartiallyAMarketOr
     EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 5);
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
 }
+
+TEST_F(LimitOrderBookTests, TestAddingAStopOrder) {
+    EXPECT_EQ(book->searchOrderMap(357), nullptr);
+    EXPECT_EQ(book->searchStopMap(100), nullptr);
+
+    book->addStopOrder(357, true, 27, 100);
+
+    EXPECT_EQ(book->searchOrderMap(357)->getShares(), 27);
+    EXPECT_EQ(book->searchStopMap(100)->getTotalVolume(), 27);
+    EXPECT_EQ(book->searchStopMap(20), nullptr);
+
+    book->addStopOrder(222, false, 35, 110);
+
+    EXPECT_EQ(book->searchStopMap(110)->getTotalVolume(), 35);
+}

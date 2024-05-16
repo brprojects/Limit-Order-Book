@@ -122,7 +122,7 @@ void GenerateOrders::createOrders(int numberOfOrders)
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     // Define the probabilities and actions
-    std::vector<double> probabilities = {0, 0, 0.5, 0.5, 0};
+    std::vector<double> probabilities = {0.15, 0.2, 0.4, 0.2, 0.05};
     std::vector<std::function<void()>> actions = {
         std::bind(&GenerateOrders::market, this),
         std::bind(&GenerateOrders::modify, this),

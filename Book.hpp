@@ -14,14 +14,23 @@ private:
     Limit *sellTree;
     Limit *lowestSell;
     Limit *highestBuy;
+
+    Limit *stopBuyTree;
+    Limit *stopSellTree;
+    Limit *lowestStopSell;
+    Limit *highestStopBuy;
+
     std::unordered_map<int, Order*> orderMap;
     std::unordered_map<int, Limit*> limitBuyMap;
     std::unordered_map<int, Limit*> limitSellMap;
+    std::unordered_map<int, Limit*> stopMap;
 
     void addLimit(int limitPrice, bool buyOrSell);
+    void addStop(int stopPrice, bool buyOrSell);
     Limit* insert(Limit* root, Limit* limit, Limit* parent=nullptr);
     void updateBookEdgeInsert(Limit* newLimit);
     void updateBookEdgeRemove(Limit* limit);
+    void updateStopBookEdgeInsert(Limit* newStop);
     void changeBookRoots(Limit* limit);
     void deleteLimit(Limit* limit);
     void deleteFromOrderMap(int orderId);
@@ -46,18 +55,19 @@ public:
 
     void marketOrder(int orderId, bool buyOrSell, int shares);
     void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
-    // void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
-    // void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     void cancelOrder(int orderId);
-    // void cancelStopOrder(int orderId);
-    // void cancelStopLimitOrder(int orderId);
     void modifyOrder(int orderId, int newShares, int newLimit);
+    void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
+    // void cancelStopOrder(int orderId);
     // void modifyStopOrder(int orderId, int newShares, int newStopPrice);
+    // void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
+    // void cancelStopLimitOrder(int orderId);
     // void modifyStopLimitOrder(int orderId, int newShares, int newLimit, int newStopPrice);
 
     int getLimitHeight(Limit* limit) const;
     Order* searchOrderMap(int orderId) const;
     Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
+    Limit* searchStopMap(int stopPrice) const;
     Order* getRandomOrder(std::mt19937 gen) const;
     
     void printLimit(int limitPrice, bool buyOrSell) const;

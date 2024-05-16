@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <random>
 
-Book::Book() : buyTree(nullptr), sellTree(nullptr), lowestSell(nullptr), highestBuy(nullptr){}
+Book::Book() : buyTree(nullptr), sellTree(nullptr), lowestSell(nullptr), highestBuy(nullptr), 
+            stopBuyTree(nullptr), stopSellTree(nullptr), lowestStopSell(nullptr), highestStopBuy(nullptr){}
 
 // When deleting the book need to ensure all used memory is freed
 Book::~Book()
@@ -133,6 +134,25 @@ void Book::modifyOrder(int orderId, int newShares, int newLimit)
     }
 }
 
+// Add a stop order
+void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
+{
+    // Account for order being executed immediately
+    // shares = limitOrderAsMarketOrder(orderId, buyOrSell, shares, limitPrice);
+    
+    if (shares != 0)
+    {
+        Order* newOrder = new Order(orderId, buyOrSell, shares, 0);
+        orderMap.emplace(orderId, newOrder);
+
+        if (stopMap.find(stopPrice) == stopMap.end())
+        {
+            addStop(stopPrice, newOrder->getBuyOrSell());
+        }
+        stopMap.at(stopPrice)->append(newOrder);
+    }
+}
+
 // Get the height of a limit in a binary tree
 int Book::getLimitHeight(Limit* limit) const {
     if (limit == nullptr) {
@@ -170,7 +190,21 @@ Limit* Book::searchLimitMaps(int limitPrice, bool buyOrSell) const
         return it->second;
     } else
     {
-        std::cout << "No "<< (buyOrSell ? "buy " : "sell ") << " limit at " << limitPrice << std::endl;
+        std::cout << "No "<< (buyOrSell ? "buy " : "sell ") << "limit at " << limitPrice << std::endl;
+        return nullptr;
+    }
+}
+
+// Search the stop map to find a stop level
+Limit* Book::searchStopMap(int stopPrice) const
+{
+    auto it = stopMap.find(stopPrice);
+    if (it != stopMap.end())
+    {
+        return it->second;
+    } else
+    {
+        std::cout << "No stop level at " << stopPrice << std::endl;
         return nullptr;
     }
 }
@@ -282,6 +316,26 @@ void Book::addLimit(int limitPrice, bool buyOrSell)
     }
 }
 
+// Add a new stop level to the book
+void Book::addStop(int stopPrice, bool buyOrSell)
+{
+    auto& tree = buyOrSell ? stopBuyTree : stopSellTree;
+    auto& bookEdge = buyOrSell ? highestStopBuy : lowestStopSell;
+
+    Limit* newStop = new Limit(stopPrice, buyOrSell);
+    stopMap.emplace(stopPrice, newStop);
+
+    if (tree == nullptr)
+    {
+        tree = newStop;
+        bookEdge = newStop;
+    } else
+    {
+        Limit* root = insert(tree, newStop);
+        updateStopBookEdgeInsert(newStop);
+    }
+}
+
 // Insert a limit into its binary search tree
 Limit* Book::insert(Limit* root, Limit* limit, Limit* parent)
 {
@@ -317,6 +371,24 @@ void Book::updateBookEdgeInsert(Limit* newLimit)
         if (newLimit->getLimitPrice() < lowestSell->getLimitPrice())
         {
             lowestSell = newLimit;
+        }
+    }
+}
+
+// Update the edge of the stop book if new stop is on edge of the book
+void Book::updateStopBookEdgeInsert(Limit* newStop)
+{
+    if (newStop->getBuyOrSell())
+    {
+        if (newStop->getLimitPrice() > highestStopBuy->getLimitPrice())
+        {
+            highestStopBuy = newStop;
+        }
+    } else
+    {
+        if (newStop->getLimitPrice() < lowestStopSell->getLimitPrice())
+        {
+            lowestStopSell = newStop;
         }
     }
 }
