@@ -1489,3 +1489,57 @@ TEST_F(LimitOrderBookTests, TestCancelStopOrderLeavingEmptyLimit){
     EXPECT_EQ(book->searchLimitMaps(15, true), nullptr);
     EXPECT_EQ(stop1->getLeftChild(), nullptr);
 }
+
+TEST_F(LimitOrderBookTests, TestModifyStopOrderToExistingStopLevel){
+    book->addStopOrder(111, true, 10, 80);
+    book->addStopOrder(112, true, 20, 80);
+    book->addStopOrder(113, true, 7, 85);
+    book->addStopOrder(114, true, 14, 85);
+
+    book->modifyStopOrder(113, 40, 80);
+
+    Limit* stop1 = book->searchStopMap(80);
+    Limit* stop2 = book->searchStopMap(85);
+
+    EXPECT_EQ(stop1->getHeadOrder()->getOrderId(), 111);
+    EXPECT_EQ(stop2->getHeadOrder()->getOrderId(), 114);
+    EXPECT_EQ(stop1->getTotalVolume(), 70);
+    EXPECT_EQ(stop2->getTotalVolume(), 14);
+}
+
+TEST_F(LimitOrderBookTests, TestModifyStopOrderToNewStopLevel){
+    book->addStopOrder(111, true, 10, 80);
+    book->addStopOrder(112, true, 20, 80);
+    book->addStopOrder(113, true, 7, 85);
+    book->addStopOrder(114, true, 14, 85);
+
+    book->modifyStopOrder(113, 40, 82);
+
+    Limit* stop1 = book->searchStopMap(82);
+    Limit* stop2 = book->searchStopMap(85);
+
+    EXPECT_EQ(stop1->getHeadOrder()->getOrderId(), 113);
+    EXPECT_EQ(stop2->getHeadOrder()->getOrderId(), 114);
+    EXPECT_EQ(stop1->getTotalVolume(), 40);
+    EXPECT_EQ(stop2->getTotalVolume(), 14);
+}
+
+TEST_F(LimitOrderBookTests, TestModifyStopOrderInvalidOrderId){
+    book->addStopOrder(111, true, 10, 80);
+    book->addStopOrder(112, true, 20, 80);
+    book->addStopOrder(113, true, 7, 85);
+    book->addStopOrder(114, true, 14, 85);
+
+    book->modifyStopOrder(110, 40, 82);
+
+    Limit* stop1 = book->searchStopMap(80);
+    Limit* stop2 = book->searchStopMap(85);
+
+    EXPECT_EQ(stop1->getHeadOrder()->getOrderId(), 111);
+    EXPECT_EQ(stop2->getHeadOrder()->getOrderId(), 113);
+    EXPECT_EQ(stop1->getTotalVolume(), 30);
+    EXPECT_EQ(stop2->getTotalVolume(), 21);
+    EXPECT_EQ(book->searchStopMap(82), nullptr);
+    EXPECT_EQ(book->searchOrderMap(110), nullptr);
+}
+

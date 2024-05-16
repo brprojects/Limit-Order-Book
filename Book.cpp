@@ -71,6 +71,7 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
     {
         bookEdge->getHeadOrder()->partiallyFillOrder(shares);
     }
+    // Check if there are stop orders to execute
 }
 
 // Add a new order to the book
@@ -142,7 +143,7 @@ void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
     
     if (shares != 0)
     {
-        Order* newOrder = new Order(orderId, buyOrSell, shares, stopPrice);
+        Order* newOrder = new Order(orderId, buyOrSell, shares, 0);
         orderMap.emplace(orderId, newOrder);
 
         if (stopMap.find(stopPrice) == stopMap.end())
@@ -167,6 +168,28 @@ void Book::cancelStopOrder(int orderId)
             }
         deleteFromOrderMap(orderId);
         delete order;
+    }
+}
+
+// Modify an existing stop order
+void Book::modifyStopOrder(int orderId, int newShares, int newStopPrice)
+{
+    Order* order = searchOrderMap(orderId);
+    if (order != nullptr)
+    {
+        order->cancel();
+            if (order->getParentLimit()->getSize() == 0)
+            {
+                deleteStopLevel(order->getParentLimit());
+            }
+        
+        order->modifyOrder(newShares, 0);
+
+        if (stopMap.find(newStopPrice) == stopMap.end())
+        {
+            addStop(newStopPrice, order->getBuyOrSell());
+        }
+        stopMap.at(newStopPrice)->append(order);
     }
 }
 

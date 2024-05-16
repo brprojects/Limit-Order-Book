@@ -63,7 +63,7 @@ public:
     void modifyOrder(int orderId, int newShares, int newLimit);
     void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
     void cancelStopOrder(int orderId);
-    // void modifyStopOrder(int orderId, int newShares, int newStopPrice);
+    void modifyStopOrder(int orderId, int newShares, int newStopPrice);
     // void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     // void cancelStopLimitOrder(int orderId);
     // void modifyStopLimitOrder(int orderId, int newShares, int newLimit, int newStopPrice);
