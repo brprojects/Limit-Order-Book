@@ -17,8 +17,8 @@ private:
 
     Limit *stopBuyTree;
     Limit *stopSellTree;
-    Limit *lowestStopSell;
-    Limit *highestStopBuy;
+    Limit *highestStopSell;
+    Limit *lowestStopBuy;
 
     std::unordered_map<int, Order*> orderMap;
     std::unordered_map<int, Limit*> limitBuyMap;
@@ -40,6 +40,7 @@ private:
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
     void deleteFromStopMap(int StopPrice);
     int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    void marketOrderHelper(int orderId, bool buyOrSell, int shares);
 
     int limitHeightDifference(Limit* limit);
     Limit* rr_rotate(Limit* limit);
@@ -56,6 +57,10 @@ public:
     Limit* getSellTree() const;
     Limit* getLowestSell() const;
     Limit* getHighestBuy() const;
+    Limit* getStopBuyTree() const;
+    Limit* getStopSellTree() const;
+    Limit* getHighestStopSell() const;
+    Limit* getLowestStopBuy() const;
 
     void marketOrder(int orderId, bool buyOrSell, int shares);
     void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);

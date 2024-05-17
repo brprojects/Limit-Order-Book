@@ -22,6 +22,7 @@ TEST_F(LimitOrderBookTests, TestBookCreated) {
     EXPECT_NE(book, nullptr);
 }
 
+// Adding orders tests
 TEST_F(LimitOrderBookTests, TestAddingAnOrder) {
     EXPECT_EQ(book->searchOrderMap(357), nullptr);
     EXPECT_EQ(book->searchLimitMaps(100, true), nullptr);
@@ -56,6 +57,7 @@ TEST_F(LimitOrderBookTests, TestMultipleOrdersInALimit){
 
 }
 
+// Cancelling orders tests
 TEST_F(LimitOrderBookTests, TestCancelOrderLeavingNonEmptyLimit){
     book->addOrder(5, true, 80, 20);
     book->addOrder(6, true, 32, 20);
@@ -116,6 +118,7 @@ TEST_F(LimitOrderBookTests, TestCancelOrderLeavingEmptyLimit){
     EXPECT_EQ(limit1->getLeftChild(), nullptr);
 }
 
+// Adding to BST tests
 TEST_F(LimitOrderBookTests, TestCorrectLimitParent){
     book->addOrder(5, true, 80, 20);
     book->addOrder(6, true, 80, 15);
@@ -195,6 +198,7 @@ TEST_F(LimitOrderBookTests, TestBinarySearchTree){
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
+// Remove from BST tests
 TEST_F(LimitOrderBookTests, TestRemoveLimitWithNoChildren){
     book->addOrder(5, false, 80, 20);
     book->addOrder(6, false, 80, 15);
@@ -523,6 +527,7 @@ TEST_F(LimitOrderBookTests, TestRemoveRootLimitWithTwoChildren_RightChildHasLeft
     EXPECT_EQ(expectedPostOrder, actualPostOrder);
 }
 
+// AVL tree balancing tests
 TEST_F(LimitOrderBookTests, TestAVLTreeRRRotateOnInsert){
     book->addOrder(5, true, 80, 20);
     book->addOrder(6, true, 80, 15);
@@ -1058,6 +1063,7 @@ TEST_F(LimitOrderBookTests, TestAVLTreeLRRotateRootOnDelete){
     EXPECT_EQ(book->getBuyTree()->getParent(), nullptr);
 }
 
+// Book edge tests
 TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnInsertLowestSell){
     book->addOrder(111, false, 43, 80);
     book->addOrder(112, false, 46, 78);
@@ -1180,6 +1186,7 @@ TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteLowestSellNotParent){
     EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 76);
 }
 
+// Market orders tests
 TEST_F(LimitOrderBookTests, TestBuyMarketOrderFilledBySingleOrder){
     book->addOrder(111, false, 100, 80);
     book->addOrder(112, false, 30, 80);
@@ -1298,6 +1305,7 @@ TEST_F(LimitOrderBookTests, TestSellMarketOrderEmptyBuyTree){
     EXPECT_EQ(book->getHighestBuy(), nullptr);
 }
 
+// Modifying orders tests
 TEST_F(LimitOrderBookTests, TestModifyOrderToExistingLimit){
     book->addOrder(111, true, 10, 80);
     book->addOrder(112, true, 20, 80);
@@ -1351,6 +1359,7 @@ TEST_F(LimitOrderBookTests, TestModifyOrderInvalidOrderId){
     EXPECT_EQ(book->searchOrderMap(110), nullptr);
 }
 
+// Limit order that is a market order tests
 TEST_F(LimitOrderBookTests, TestAddingSellLimitOrderWhichIsAMarketOrder) {
     book->addOrder(357, true, 40, 100);
     book->addOrder(222, false, 35, 100);
@@ -1415,6 +1424,7 @@ TEST_F(LimitOrderBookTests, TestAddingBuyLimitOrderWhichIsOnlyPartiallyAMarketOr
     EXPECT_EQ(book->getHighestBuy()->getHeadOrder()->getShares(), 5);
 }
 
+// Adding stop orders tests
 TEST_F(LimitOrderBookTests, TestAddingAStopOrder) {
     EXPECT_EQ(book->searchOrderMap(357), nullptr);
     EXPECT_EQ(book->searchStopMap(100), nullptr);
@@ -1430,6 +1440,7 @@ TEST_F(LimitOrderBookTests, TestAddingAStopOrder) {
     EXPECT_EQ(book->searchStopMap(110)->getTotalVolume(), 35);
 }
 
+// Cancelling stop orders tests
 TEST_F(LimitOrderBookTests, TestCancelStopOrderLeavingNonEmptyLimit){
     book->addStopOrder(5, true, 80, 20);
     book->addStopOrder(6, true, 32, 20);
@@ -1490,6 +1501,7 @@ TEST_F(LimitOrderBookTests, TestCancelStopOrderLeavingEmptyLimit){
     EXPECT_EQ(stop1->getLeftChild(), nullptr);
 }
 
+// Modifying stop orders tests
 TEST_F(LimitOrderBookTests, TestModifyStopOrderToExistingStopLevel){
     book->addStopOrder(111, true, 10, 80);
     book->addStopOrder(112, true, 20, 80);
@@ -1541,5 +1553,161 @@ TEST_F(LimitOrderBookTests, TestModifyStopOrderInvalidOrderId){
     EXPECT_EQ(stop2->getTotalVolume(), 21);
     EXPECT_EQ(book->searchStopMap(82), nullptr);
     EXPECT_EQ(book->searchOrderMap(110), nullptr);
+}
+
+// Stop book edge tests
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnInsertHighestStopSell){
+    book->addStopOrder(111, false, 43, 80);
+    book->addStopOrder(112, false, 46, 78);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 80);
+    
+    book->addStopOrder(113, false, 46, 81);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 81);
+
+    book->addStopOrder(114, false, 46, 79);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 81);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnInsertLowestStopBuy){
+    book->addStopOrder(111, true, 43, 80);
+    book->addStopOrder(112, true, 46, 78);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 78);
+    
+    book->addStopOrder(113, true, 46, 82);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 78);
+
+    book->addStopOrder(114, true, 46, 70);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 70);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteHighestStopSell){
+    book->addStopOrder(111, false, 43, 78);
+    book->addStopOrder(112, false, 46, 80);
+    book->addStopOrder(113, false, 46, 77);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 80);
+    
+    book->cancelStopOrder(112);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 78);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteLowestStopBuy){
+    book->addStopOrder(111, true, 43, 80);
+    book->addStopOrder(112, true, 46, 78);
+    book->addStopOrder(113, true, 46, 82);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 78);
+    
+    book->cancelStopOrder(112);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteLowestStopBuyEmptyTree){
+    book->addStopOrder(111, true, 43, 80);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 80);
+
+    book->cancelStopOrder(111);
+
+    EXPECT_EQ(book->getLowestStopBuy(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteHighestStopSellEmptyTree){
+    book->addStopOrder(111, false, 43, 80);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 80);
+
+    book->cancelStopOrder(111);
+
+    EXPECT_EQ(book->getHighestStopSell(), nullptr);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteLowestStopBuyRootLimit){
+    book->addStopOrder(111, true, 43, 75);
+    book->addStopOrder(112, true, 43, 80);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 75);
+
+    book->cancelStopOrder(111);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateBookEdgeOnDeleteHighestStopSellRootLimit){
+    book->addStopOrder(111, false, 10, 85);
+    book->addStopOrder(112, false, 20, 80);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 85);
+
+    book->cancelStopOrder(111);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 80);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteLowestStopBuyNotParent){
+    book->addStopOrder(111, true, 43, 80);
+    book->addStopOrder(112, true, 43, 75);
+    book->addStopOrder(113, true, 43, 85);
+    book->addStopOrder(114, true, 43, 76);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 75);
+
+    book->cancelStopOrder(112);
+
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 76);
+}
+
+TEST_F(LimitOrderBookTests, TestUpdateStopBookEdgeOnDeleteHighestStopSellNotParent){
+    book->addStopOrder(111, false, 43, 80);
+    book->addStopOrder(112, false, 43, 75);
+    book->addStopOrder(113, false, 43, 85);
+    book->addStopOrder(114, false, 43, 82);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 85);
+
+    book->cancelStopOrder(113);
+
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 82);
+}
+
+// Stop orders being triggered tests
+TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredByMarketBuyOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredByMarketSellOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestMultipleStopOrderLevelsTriggeredByMarketBuyOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestMultipleStopOrderLevelsTriggeredByMarketSellOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestStopBuyOrderTriggeringStopSellOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestStopSellOrderTriggeringStopBuyOrder){
+
+}
+
+TEST_F(LimitOrderBookTests, TestStopOrderTriggeringTwoFurtherIterationsOfStopOrders){
+
+}
+
+TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredByLimitOrderWhichIsAMarketOrder){
+
 }
 

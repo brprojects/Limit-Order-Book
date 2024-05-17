@@ -6,7 +6,7 @@
 #include <random>
 
 Book::Book() : buyTree(nullptr), sellTree(nullptr), lowestSell(nullptr), highestBuy(nullptr), 
-            stopBuyTree(nullptr), stopSellTree(nullptr), lowestStopSell(nullptr), highestStopBuy(nullptr){}
+            stopBuyTree(nullptr), stopSellTree(nullptr), highestStopSell(nullptr), lowestStopBuy(nullptr){}
 
 // When deleting the book need to ensure all used memory is freed
 Book::~Book()
@@ -49,9 +49,66 @@ Limit* Book::getHighestBuy() const
     return highestBuy;
 }
 
+Limit* Book::getStopBuyTree() const
+{
+    return stopBuyTree;
+}
+
+Limit* Book::getStopSellTree() const
+{
+    return stopSellTree;
+}
+
+Limit* Book::getHighestStopSell() const
+{
+    return highestStopSell;
+}
+
+Limit* Book::getLowestStopBuy() const
+{
+    return lowestStopBuy;
+}
+
 // Execute a market order. If the book is empty and can't complete market 
 // order then market order just doesn't execute and is forgotten.
 void Book::marketOrder(int orderId, bool buyOrSell, int shares)
+{
+    marketOrderHelper(orderId, buyOrSell, shares);
+    
+    // Check if there are stop orders to execute
+    while ((highestStopSell != nullptr && highestStopSell <= highestBuy) || (lowestStopBuy != nullptr && lowestStopBuy >= lowestSell))
+    {
+        while (highestStopSell != nullptr && highestStopSell <= highestBuy)
+        {
+            // Execute any sell stop market orders
+            Order* headOrder = highestStopSell->getHeadOrder();
+            marketOrderHelper(0, false, headOrder->getShares());
+            headOrder->cancel();
+            if (highestStopSell->getSize() == 0)
+            {
+                deleteLimit(highestStopSell);
+            }
+            deleteFromOrderMap(headOrder->getOrderId());
+            delete headOrder;
+        }
+        while (lowestStopBuy != nullptr && lowestStopBuy >= lowestSell)
+        {
+            // Execute any buy stop market orders
+            Order* headOrder = lowestStopBuy->getHeadOrder();
+            marketOrderHelper(0, true, headOrder->getShares());
+            headOrder->cancel();
+            if (lowestStopBuy->getSize() == 0)
+            {
+                deleteLimit(lowestStopBuy);
+            }
+            deleteFromOrderMap(headOrder->getOrderId());
+            delete headOrder;
+        }
+    }
+    
+}
+
+void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
 {
     auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
 
@@ -71,8 +128,8 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
     {
         bookEdge->getHeadOrder()->partiallyFillOrder(shares);
     }
-    // Check if there are stop orders to execute
 }
+
 
 // Add a new order to the book
 void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
@@ -360,7 +417,7 @@ void Book::addLimit(int limitPrice, bool buyOrSell)
 void Book::addStop(int stopPrice, bool buyOrSell)
 {
     auto& tree = buyOrSell ? stopBuyTree : stopSellTree;
-    auto& bookEdge = buyOrSell ? highestStopBuy : lowestStopSell;
+    auto& bookEdge = buyOrSell ? lowestStopBuy : highestStopSell;
 
     Limit* newStop = new Limit(stopPrice, buyOrSell);
     stopMap.emplace(stopPrice, newStop);
@@ -420,15 +477,15 @@ void Book::updateStopBookEdgeInsert(Limit* newStop)
 {
     if (newStop->getBuyOrSell())
     {
-        if (newStop->getLimitPrice() > highestStopBuy->getLimitPrice())
+        if (newStop->getLimitPrice() < lowestStopBuy->getLimitPrice())
         {
-            highestStopBuy = newStop;
+            lowestStopBuy = newStop;
         }
     } else
     {
-        if (newStop->getLimitPrice() < lowestStopSell->getLimitPrice())
+        if (newStop->getLimitPrice() > highestStopSell->getLimitPrice())
         {
-            lowestStopSell = newStop;
+            highestStopSell = newStop;
         }
     }
 }
@@ -466,32 +523,32 @@ void Book::updateBookEdgeRemove(Limit* limit)
     }
 }
 
-// Update the edge of the stop book if current edge of the stopbook is emptied
+// Update the edge of the stop book if current edge of the stop book is emptied
 void Book::updateStopBookEdgeRemove(Limit* stopLevel)
 {
-    auto& bookEdge = stopLevel->getBuyOrSell() ? highestStopBuy : lowestStopSell;
+    auto& bookEdge = stopLevel->getBuyOrSell() ? lowestStopBuy : highestStopSell;
     auto& tree = stopLevel->getBuyOrSell() ? stopBuyTree : stopSellTree;
 
     if (stopLevel == bookEdge)
     {
         if (bookEdge != tree)
         {
-            if (stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
-            {
-                bookEdge = bookEdge->getLeftChild();
-            } else if (!stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            if (stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
             {
                 bookEdge = bookEdge->getRightChild();
+            } else if (!stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
             } else {
             bookEdge = bookEdge->getParent();
             }
         } else {
-            if (stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
-            {
-                bookEdge = bookEdge->getLeftChild();
-            } else if (!stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
+            if (stopLevel->getBuyOrSell() && bookEdge->getRightChild() != nullptr)
             {
                 bookEdge = bookEdge->getRightChild();
+            } else if (!stopLevel->getBuyOrSell() && bookEdge->getLeftChild() != nullptr)
+            {
+                bookEdge = bookEdge->getLeftChild();
             } else {
             bookEdge = nullptr;
             }
