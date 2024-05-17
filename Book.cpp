@@ -143,7 +143,6 @@ void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
     }
 }
 
-
 // Add a new order to the book
 void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
@@ -208,8 +207,8 @@ void Book::modifyOrder(int orderId, int newShares, int newLimit)
 // Add a stop order
 void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
 {
-    // Account for order being executed immediately
-    // shares = limitOrderAsMarketOrder(orderId, buyOrSell, shares, limitPrice);
+    // Account for stop order being executed immediately
+    shares = stopOrderAsMarketOrder(orderId, buyOrSell, shares, stopPrice);
     
     if (shares != 0)
     {
@@ -319,6 +318,7 @@ Limit* Book::searchStopMap(int stopPrice) const
     }
 }
 
+// Return a random active order
 Order* Book::getRandomOrder(std::mt19937 gen) const
 {
     if (orderMap.size() > 1000)
@@ -733,6 +733,20 @@ int Book::limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int l
         executeStopOrders(buyOrSell);
         return shares;
     }
+}
+
+int Book::stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
+{
+    if (buyOrSell && lowestSell != nullptr && stopPrice <= lowestSell->getLimitPrice())
+    {
+        marketOrder(orderId, true, shares);
+        return 0;
+    } else if (!buyOrSell && highestBuy != nullptr && stopPrice >= highestBuy->getLimitPrice())
+    {
+        marketOrder(orderId, false, shares);
+        return 0;
+    }
+    return shares;
 }
 
 // Get height difference between a limits children

@@ -41,6 +41,7 @@ private:
     void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
     void deleteFromStopMap(int StopPrice);
     int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    int stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
     void marketOrderHelper(int orderId, bool buyOrSell, int shares);
     void executeStopOrders(bool buyOrSell);
 
