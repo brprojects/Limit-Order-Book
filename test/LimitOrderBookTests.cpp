@@ -1853,9 +1853,31 @@ TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredByBuyLimitOrderWhichIsAMarket
 }
 
 TEST_F(LimitOrderBookTests, TestBuyStopOrderWhenEmptySellTree){
+    book->addOrder(111, true, 10, 100);
+    book->addOrder(112, true, 10, 99);
 
+    book->addStopOrder(114, false, 15, 99);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 100);
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 99);
+
+    book->marketOrder(115, false, 11);
+
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
+    EXPECT_EQ(book->getHighestStopSell(), nullptr);
 }
 
 TEST_F(LimitOrderBookTests, TestSellStopOrderWhenEmptyBuyTree){
+    book->addOrder(112, false, 10, 99);
+    book->addOrder(113, false, 10, 98);
 
+    book->addStopOrder(114, true, 15, 99);
+
+    EXPECT_EQ(book->getLowestSell()->getLimitPrice(), 98);
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 99);
+
+    book->marketOrder(115, true, 11);
+
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+    EXPECT_EQ(book->getLowestStopBuy(), nullptr);
 }

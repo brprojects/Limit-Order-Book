@@ -85,12 +85,12 @@ void Book::marketOrder(int orderId, bool buyOrSell, int shares)
 // Executes any stop orders which need to be executed
 void Book::executeStopOrders(bool buyOrSell)
 {
-    std::cout << buyOrSell << std::endl;
     if (buyOrSell)
     {
-        while (lowestStopBuy != nullptr && lowestStopBuy->getLimitPrice() <= lowestSell->getLimitPrice())
+        // Execute any buy stop market orders
+        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
+        while (lowestStopBuy != nullptr && (lowestSell == nullptr || lowestStopBuy->getLimitPrice() <= lowestSell->getLimitPrice()))
         {
-            // Execute any buy stop market orders
             Order* headOrder = lowestStopBuy->getHeadOrder();
             marketOrderHelper(0, true, headOrder->getShares());
             headOrder->cancel();
@@ -102,9 +102,10 @@ void Book::executeStopOrders(bool buyOrSell)
             delete headOrder;
         }
     } else {
-        while (highestStopSell != nullptr && highestStopSell->getLimitPrice() >= highestBuy->getLimitPrice())
+        // Execute any sell stop market orders
+        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
+        while (highestStopSell != nullptr && (highestBuy == nullptr || highestStopSell->getLimitPrice() >= highestBuy->getLimitPrice()))
         {
-            // Execute any sell stop market orders
             Order* headOrder = highestStopSell->getHeadOrder();
             marketOrderHelper(0, false, headOrder->getShares());
             headOrder->cancel();
@@ -119,7 +120,7 @@ void Book::executeStopOrders(bool buyOrSell)
 }
 
 // Function which actually executes the market order.
-// If the book is empty and can't complete market order then market order just doesn't execute and is forgotten.
+// If the book is empty and can't complete market order then market order just doesn't execute and is forgotten
 void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
 {
     auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
