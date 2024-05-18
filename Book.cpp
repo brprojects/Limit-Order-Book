@@ -262,6 +262,53 @@ void Book::modifyStopOrder(int orderId, int newShares, int newStopPrice)
     }
 }
 
+// Add a stop limit order
+void Book::addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice)
+{
+    // Account for stop limit order being executed immediately
+    // shares = stopLimitOrderAsLimitOrder(orderId, buyOrSell, shares, stopPrice);
+    
+    if (shares != 0)
+    {
+        Order* newOrder = new Order(orderId, buyOrSell, shares, limitPrice);
+        orderMap.emplace(orderId, newOrder);
+
+        if (stopMap.find(stopPrice) == stopMap.end())
+        {
+            addStop(stopPrice, newOrder->getBuyOrSell());
+        }
+        stopMap.at(stopPrice)->append(newOrder);
+    }
+}
+
+void Book::cancelStopLimitOrder(int orderId)
+{
+    cancelStopOrder(orderId);
+}
+
+// Modify an existing stop limit order
+void Book::modifyStopLimitOrder(int orderId, int newShares, int newLimit, int newStopPrice)
+{
+    Order* order = searchOrderMap(orderId);
+    if (order != nullptr)
+    {
+        order->cancel();
+            if (order->getParentLimit()->getSize() == 0)
+            {
+                deleteStopLevel(order->getParentLimit());
+            }
+        
+        order->modifyOrder(newShares, newLimit);
+
+        if (stopMap.find(newStopPrice) == stopMap.end())
+        {
+            addStop(newStopPrice, order->getBuyOrSell());
+        }
+        stopMap.at(newStopPrice)->append(order);
+    }
+}
+
+
 // Get the height of a limit in a binary tree
 int Book::getLimitHeight(Limit* limit) const {
     if (limit == nullptr) {
