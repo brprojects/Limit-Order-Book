@@ -42,8 +42,11 @@ private:
     void deleteFromStopMap(int StopPrice);
     int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
     int stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
+    int existingOrderAsMarketOrder(Order* headOrder, bool buyOrSell);
+    int stopLimitOrderAsLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     void marketOrderHelper(int orderId, bool buyOrSell, int shares);
     void executeStopOrders(bool buyOrSell);
+    void stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell);
 
     int limitHeightDifference(Limit* limit);
     Limit* rr_rotate(Limit* limit);

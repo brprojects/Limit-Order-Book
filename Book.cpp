@@ -92,14 +92,19 @@ void Book::executeStopOrders(bool buyOrSell)
         while (lowestStopBuy != nullptr && (lowestSell == nullptr || lowestStopBuy->getLimitPrice() <= lowestSell->getLimitPrice()))
         {
             Order* headOrder = lowestStopBuy->getHeadOrder();
-            marketOrderHelper(0, true, headOrder->getShares());
-            headOrder->cancel();
-            if (lowestStopBuy->getSize() == 0)
+            if (headOrder->getLimit() == 0)
             {
-                deleteStopLevel(lowestStopBuy);
+                marketOrderHelper(0, true, headOrder->getShares());
+                headOrder->cancel();
+                if (lowestStopBuy->getSize() == 0)
+                {
+                    deleteStopLevel(lowestStopBuy);
+                }
+                deleteFromOrderMap(headOrder->getOrderId());
+                delete headOrder;
+            } else {
+                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
             }
-            deleteFromOrderMap(headOrder->getOrderId());
-            delete headOrder;
         }
     } else {
         // Execute any sell stop market orders
@@ -107,15 +112,47 @@ void Book::executeStopOrders(bool buyOrSell)
         while (highestStopSell != nullptr && (highestBuy == nullptr || highestStopSell->getLimitPrice() >= highestBuy->getLimitPrice()))
         {
             Order* headOrder = highestStopSell->getHeadOrder();
-            marketOrderHelper(0, false, headOrder->getShares());
-            headOrder->cancel();
-            if (highestStopSell->getSize() == 0)
+            if (headOrder->getLimit() == 0)
             {
-                deleteStopLevel(highestStopSell);
+                marketOrderHelper(0, false, headOrder->getShares());
+                headOrder->cancel();
+                if (highestStopSell->getSize() == 0)
+                {
+                    deleteStopLevel(highestStopSell);
+                }
+                deleteFromOrderMap(headOrder->getOrderId());
+                delete headOrder;
+            } else {
+                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
             }
-            deleteFromOrderMap(headOrder->getOrderId());
-            delete headOrder;
+            
         }
+    }
+}
+
+// Turn stop limit order into limit order
+void Book::stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell)
+{
+    auto& bookEdge = buyOrSell ? lowestStopBuy : highestStopSell;
+    headOrder->cancel();
+    if (bookEdge->getSize() == 0)
+    {
+        deleteStopLevel(bookEdge);
+    }
+
+    // Account for order being executed immediately
+    int shares = existingOrderAsMarketOrder(headOrder, buyOrSell);
+    
+    if (shares != 0)
+    {
+        headOrder->setShares(shares);
+        auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
+        if (limitMap.find(headOrder->getLimit()) == limitMap.end())
+        {
+            addLimit(headOrder->getLimit(), buyOrSell);
+        }
+        limitMap.at(headOrder->getLimit())->append(headOrder);
     }
 }
 
@@ -266,7 +303,7 @@ void Book::modifyStopOrder(int orderId, int newShares, int newStopPrice)
 void Book::addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice)
 {
     // Account for stop limit order being executed immediately
-    // shares = stopLimitOrderAsLimitOrder(orderId, buyOrSell, shares, stopPrice);
+    shares = stopLimitOrderAsLimitOrder(orderId, buyOrSell, shares, limitPrice, stopPrice);
     
     if (shares != 0)
     {
@@ -782,6 +819,8 @@ int Book::limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int l
     }
 }
 
+// When a stop order overlaps with the highest buy or lowest sell, immediately
+// execute it as if it were a market order
 int Book::stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
 {
     if (buyOrSell && lowestSell != nullptr && stopPrice <= lowestSell->getLimitPrice())
@@ -791,6 +830,66 @@ int Book::stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int st
     } else if (!buyOrSell && highestBuy != nullptr && stopPrice >= highestBuy->getLimitPrice())
     {
         marketOrder(orderId, false, shares);
+        return 0;
+    }
+    return shares;
+}
+
+// When a limit order that used to be a stop limit order overlaps with the highest buy or lowest sell, 
+// immediately execute it as if it were a market order
+int Book::existingOrderAsMarketOrder(Order* headOrder, bool buyOrSell)
+{
+    int shares = headOrder->getShares();
+    int orderId = headOrder->getOrderId();
+    int limitPrice = headOrder->getLimit();
+    
+    if (buyOrSell)
+    {
+        while (lowestSell != nullptr && shares != 0 && lowestSell->getLimitPrice() <= limitPrice)
+        {
+            if (shares <= lowestSell->getTotalVolume())
+            {
+                marketOrder(orderId, buyOrSell, shares);
+                deleteFromOrderMap(orderId);
+                delete headOrder;
+                return 0;
+            } else {
+                shares -= lowestSell->getTotalVolume();
+                marketOrderHelper(orderId, buyOrSell, lowestSell->getTotalVolume());
+            }
+        }
+        executeStopOrders(buyOrSell);
+        return shares;
+    } else {
+        while (highestBuy != nullptr && shares != 0 && highestBuy->getLimitPrice() >= limitPrice)
+        {
+            if (shares <= highestBuy->getTotalVolume())
+            {
+                marketOrder(orderId, buyOrSell, shares);
+                deleteFromOrderMap(orderId);
+                delete headOrder;
+                return 0;
+            } else {
+                shares -= highestBuy->getTotalVolume();
+                marketOrderHelper(orderId, buyOrSell, highestBuy->getTotalVolume());
+            }
+        }
+        executeStopOrders(buyOrSell);
+        return shares;
+    }
+}
+
+// When a stop limit order overlaps with the highest buy or lowest sell, immediately
+// execute it as if it were a limit order
+int Book::stopLimitOrderAsLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice)
+{
+    if (buyOrSell && lowestSell != nullptr && stopPrice <= lowestSell->getLimitPrice())
+    {
+        addOrder(orderId, true, shares, limitPrice);
+        return 0;
+    } else if (!buyOrSell && highestBuy != nullptr && stopPrice >= highestBuy->getLimitPrice())
+    {
+        addOrder(orderId, false, shares, limitPrice);
         return 0;
     }
     return shares;

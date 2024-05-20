@@ -20,11 +20,13 @@ public:
     int getShares() const;
     int getOrderId() const;
     bool getBuyOrSell() const;
+    int getLimit() const;
     Limit* getParentLimit() const;
-    void partiallyFillOrder(int orderedShares);
 
+    void partiallyFillOrder(int orderedShares);
     void cancel();
     void modifyOrder(int newShares, int newLimit);
+    void setShares(int newShares);
 
     void print() const;
 };

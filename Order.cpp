@@ -21,6 +21,11 @@ bool Order::getBuyOrSell() const
     return buyOrSell;
 }
 
+int Order::getLimit() const
+{
+    return limit;
+}
+
 Limit* Order::getParentLimit() const
 {
     return parentLimit;
@@ -61,6 +66,11 @@ void Order::modifyOrder(int newShares, int newLimit)
     nextOrder = nullptr;
     prevOrder = nullptr;
     parentLimit = nullptr;
+}
+
+void Order::setShares(int newShares)
+{
+    shares = newShares;
 }
 
 void Order::print() const
