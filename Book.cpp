@@ -180,8 +180,8 @@ void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
     }
 }
 
-// Add a new order to the book
-void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
+// Add a new limit order to the book
+void Book::addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
     // Account for order being executed immediately
     shares = limitOrderAsMarketOrder(orderId, buyOrSell, shares, limitPrice);
@@ -201,8 +201,8 @@ void Book::addOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
     }
 }
 
-// Delete an order from the book
-void Book::cancelOrder(int orderId)
+// Delete a limit order from the book
+void Book::cancelLimitOrder(int orderId)
 {
     Order* order = searchOrderMap(orderId);
 
@@ -218,8 +218,8 @@ void Book::cancelOrder(int orderId)
     }
 }
 
-// Modify an existing order
-void Book::modifyOrder(int orderId, int newShares, int newLimit)
+// Modify an existing limit order
+void Book::modifyLimitOrder(int orderId, int newShares, int newLimit)
 {
     Order* order = searchOrderMap(orderId);
     if (order != nullptr)
@@ -885,11 +885,11 @@ int Book::stopLimitOrderAsLimitOrder(int orderId, bool buyOrSell, int shares, in
 {
     if (buyOrSell && lowestSell != nullptr && stopPrice <= lowestSell->getLimitPrice())
     {
-        addOrder(orderId, true, shares, limitPrice);
+        addLimitOrder(orderId, true, shares, limitPrice);
         return 0;
     } else if (!buyOrSell && highestBuy != nullptr && stopPrice >= highestBuy->getLimitPrice())
     {
-        addOrder(orderId, false, shares, limitPrice);
+        addLimitOrder(orderId, false, shares, limitPrice);
         return 0;
     }
     return shares;

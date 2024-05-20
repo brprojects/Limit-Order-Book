@@ -72,9 +72,9 @@ public:
     Limit* getLowestStopBuy() const;
 
     void marketOrder(int orderId, bool buyOrSell, int shares);
-    void addOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
-    void cancelOrder(int orderId);
-    void modifyOrder(int orderId, int newShares, int newLimit);
+    void addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    void cancelLimitOrder(int orderId);
+    void modifyLimitOrder(int orderId, int newShares, int newLimit);
     void addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
     void cancelStopOrder(int orderId);
     void modifyStopOrder(int orderId, int newShares, int newStopPrice);

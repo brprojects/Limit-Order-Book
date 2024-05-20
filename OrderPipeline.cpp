@@ -50,17 +50,17 @@ void OrderPipeline::processAddOrder(std::istringstream& iss) {
     int orderId, shares, limitPrice;
     bool buyOrSell;
     iss >> orderId >> buyOrSell >> shares >> limitPrice;
-    book->addOrder(orderId, buyOrSell, shares, limitPrice);
+    book->addLimitOrder(orderId, buyOrSell, shares, limitPrice);
 }
 
 void OrderPipeline::processCancelOrder(std::istringstream& iss) {
     int orderId;
     iss >> orderId;
-    book->cancelOrder(orderId);
+    book->cancelLimitOrder(orderId);
 }
 
 void OrderPipeline::processModifyOrder(std::istringstream& iss) {
     int orderId, newShares, newLimit;
     iss >> orderId >> newShares >> newLimit;
-    book->modifyOrder(orderId, newShares, newLimit);
+    book->modifyLimitOrder(orderId, newShares, newLimit);
 }

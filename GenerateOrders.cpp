@@ -59,7 +59,7 @@ void GenerateOrders::modify()
         }
         
         file << "Modify " << orderId << " " << shares << " " << limitPrice << std::endl;
-        book->modifyOrder(orderId, shares, limitPrice);
+        book->modifyLimitOrder(orderId, shares, limitPrice);
     } else {
         add();
     }
@@ -75,7 +75,7 @@ void GenerateOrders::add()
     bool buyOrSell = limitPrice < 300;
 
     file << "Add " << orderId << " " << buyOrSell << " " << shares << " " << limitPrice << std::endl;
-    book->addOrder(orderId, buyOrSell, shares, limitPrice);
+    book->addLimitOrder(orderId, buyOrSell, shares, limitPrice);
     orderId ++;
 }
 
@@ -88,7 +88,7 @@ void GenerateOrders::cancel()
         int orderId = order->getOrderId();
 
         file << "Cancel " << orderId << std::endl;
-        book->cancelOrder(orderId);
+        book->cancelLimitOrder(orderId);
     } else {
         add();
     }
@@ -105,7 +105,7 @@ void GenerateOrders::limitMarket()
     bool buyOrSell = limitPrice > book->getHighestBuy()->getLimitPrice();
 
     file << "Add " << orderId << " " << buyOrSell << " " << shares << " " << limitPrice << std::endl;
-    book->addOrder(orderId, buyOrSell, shares, limitPrice);
+    book->addLimitOrder(orderId, buyOrSell, shares, limitPrice);
     orderId ++;
 }
 
