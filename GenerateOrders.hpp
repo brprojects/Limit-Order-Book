@@ -9,7 +9,7 @@ class Book;
 class GenerateOrders {
 private:
     Book* book;
-    int orderId = 10001;
+    int orderId = 11001;
     std::ofstream file;
 
     // Seed for random number generation
@@ -17,10 +17,16 @@ private:
     std::mt19937 gen;
 
     void market();
-    void modify();
-    void add();
-    void cancel();
-    void limitMarket();
+    void addLimit();
+    void cancelLimit();
+    void modifyLimit();
+    void addLimitMarket();
+    void addStop();
+    void cancelStop();
+    void modifyStop();
+    void addStopLimit();
+    void cancelStopLimit();
+    void modifyStopLimit();
 
 public:
     GenerateOrders(Book* book);
