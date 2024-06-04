@@ -2218,3 +2218,26 @@ TEST_F(LimitOrderBookTests, TestStopOrdersAndStopLimitOrdersHeldInSameStopLevel)
     EXPECT_EQ(book->getLowestSell()->getTotalVolume(), 5);
     EXPECT_EQ(book->getHighestStopSell(), nullptr);
 }
+
+TEST_F(LimitOrderBookTests, TestStopOrdersAndStopLimitOrdersMoreComplexCase){
+    book->addLimitOrder(111, true, 480, 292);
+    book->addLimitOrder(112, true, 353, 291);
+    book->addLimitOrder(113, true, 108, 289);
+    book->addLimitOrder(114, true, 49033, 288);
+
+    book->addStopLimitOrder(115, false, 441, 288, 289);
+    book->addStopLimitOrder(116, false, 1000, 287, 288);
+    book->addStopOrder(117, false, 3000, 288);
+    book->addStopLimitOrder(118, false, 417, 287, 288);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 292);
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 289);
+
+    book->marketOrder(119, false, 163);
+    book->marketOrder(120, false, 337);
+    book->marketOrder(121, false, 977);
+
+    EXPECT_EQ(book->getHighestBuy()->getLimitPrice(), 288);
+    EXPECT_EQ(book->getHighestBuy()->getTotalVolume(), 43639);
+    EXPECT_EQ(book->getHighestStopSell(), nullptr);
+}
