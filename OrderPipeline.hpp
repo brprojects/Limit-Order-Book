@@ -16,9 +16,15 @@ private:
     std::unordered_map<std::string_view, OrderFunction> orderFunctions;
 
     void processMarketOrder(std::istringstream& iss);
-    void processAddOrder(std::istringstream& iss);
-    void processCancelOrder(std::istringstream& iss);
-    void processModifyOrder(std::istringstream& iss);
+    void processAddLimitOrder(std::istringstream& iss);
+    void processCancelLimitOrder(std::istringstream& iss);
+    void processModifyLimitOrder(std::istringstream& iss);
+    void processAddStopOrder(std::istringstream& iss);
+    void processCancelStopOrder(std::istringstream& iss);
+    void processModifyStopOrder(std::istringstream& iss);
+    void processAddStopLimitOrder(std::istringstream& iss);
+    void processCancelStopLimitOrder(std::istringstream& iss);
+    void processModifyStopLimitOrder(std::istringstream& iss);
 
 public:
     OrderPipeline(Book* book);
