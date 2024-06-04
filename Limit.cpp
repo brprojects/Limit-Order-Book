@@ -163,6 +163,7 @@ void Limit::append(Order *order)
         } else {
             tailOrder->nextOrder = order;
             order->prevOrder = tailOrder;
+            order->nextOrder = nullptr;
             tailOrder = order;
         }
         size += 1;

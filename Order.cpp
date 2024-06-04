@@ -52,8 +52,26 @@ void Order::cancel()
         parentLimit->tailOrder = prevOrder;
     } else
     {
-    nextOrder->prevOrder = prevOrder;
+        nextOrder->prevOrder = prevOrder;
     }
+
+    parentLimit->totalVolume -= shares;
+    parentLimit->size -= 1;
+}
+
+// Execute head order
+void Order::execute()
+{
+    parentLimit->headOrder = nextOrder;
+    if (nextOrder == nullptr)
+    {
+        parentLimit->tailOrder = nullptr;
+    } else
+    {
+        nextOrder->prevOrder = nullptr;
+    }
+    nextOrder = nullptr;
+    prevOrder = nullptr;
 
     parentLimit->totalVolume -= shares;
     parentLimit->size -= 1;

@@ -25,6 +25,7 @@ public:
 
     void partiallyFillOrder(int orderedShares);
     void cancel();
+    void execute();
     void modifyOrder(int newShares, int newLimit);
     void setShares(int newShares);
 

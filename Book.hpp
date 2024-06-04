@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 #include <random>
+#include <unordered_set>
 
 class Limit;
 class Order;
@@ -54,7 +55,9 @@ private:
     Limit* ll_rotate(Limit* limit);
     Limit* ll_rotateStop(Limit* limit);
     Limit* lr_rotate(Limit* limit);
+    Limit* lr_rotateStop(Limit* limit);
     Limit* rl_rotate(Limit* limit);
+    Limit* rl_rotateStop(Limit* limit);
     Limit* balance(Limit* limit);
     Limit* balanceStop(Limit* limit);
 
@@ -62,6 +65,9 @@ public:
     Book();
     ~Book();
 
+    int count=0;
+    int count2=0;
+    int count3=0;
     Limit* getBuyTree() const;
     Limit* getSellTree() const;
     Limit* getLowestSell() const;
@@ -80,20 +86,25 @@ public:
     void modifyStopOrder(int orderId, int newShares, int newStopPrice);
     void addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
     void cancelStopLimitOrder(int orderId);
-    void modifyStopLimitOrder(int orderId, int newShares, int newLimit, int newStopPrice);
+    void modifyStopLimitOrder(int orderId, int newShares, int newLimitPrice, int newStopPrice);
 
     int getLimitHeight(Limit* limit) const;
     Order* searchOrderMap(int orderId) const;
     Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
     Limit* searchStopMap(int stopPrice) const;
-    Order* getRandomOrder(std::mt19937 gen) const;
     
     void printLimit(int limitPrice, bool buyOrSell) const;
     void printOrder(int orderId) const;
     void printBookEdges() const;
-    std::vector<int> inOrderTreeTraversal(Limit* root);
-    std::vector<int> preOrderTreeTraversal(Limit* root);
-    std::vector<int> postOrderTreeTraversal(Limit* root);
+    void printOrderBook() const;
+    std::vector<int> inOrderTreeTraversal(Limit* root) const;
+    std::vector<int> preOrderTreeTraversal(Limit* root) const;
+    std::vector<int> postOrderTreeTraversal(Limit* root) const;
+
+    Order* getRandomOrder(int key, std::mt19937 gen) const;
+    std::unordered_set<Order*> limitOrders;
+    std::unordered_set<Order*> stopOrders;
+    std::unordered_set<Order*> stopLimitOrders;
 };
 
 #endif
