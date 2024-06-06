@@ -45,19 +45,19 @@ void OrderPipeline::processOrdersFromFile(const std::string& filename)
 
         auto it = orderFunctions.find(orderType);
             if (it != orderFunctions.end()) {
-                // auto start = std::chrono::steady_clock::now();
+                auto start = std::chrono::steady_clock::now();
 
                 (this->*(it->second))(iss);
 
-                // auto end = std::chrono::steady_clock::now();
-                // auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+                auto end = std::chrono::steady_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
                 
-                // if (orderType == "AddLimit")
-                // {
-                //     csvFile << orderType << "," << duration.count() << "," << 0 << "," << 0 << "," << book->count3 << std::endl;
-                // } else {
-                //     csvFile << orderType << "," << duration.count() << "," << book->count << "," << book->count2 << "," << book->count3 << std::endl;
-                // }
+                if (orderType == "AddLimit")
+                {
+                    csvFile << orderType << "," << duration.count() << "," << 0 << "," << book->AVLTreeBalanceCount << std::endl;
+                } else {
+                    csvFile << orderType << "," << duration.count() << "," << book->executedOrdersCount << ","  << book->AVLTreeBalanceCount << std::endl;
+                }
                 
             } else {
                 std::cerr << "Unknown order type: " << orderType << std::endl;

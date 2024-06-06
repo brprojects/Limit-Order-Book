@@ -4,7 +4,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 def create_bar_chart_from_csv(csv_filename):
     # Read the CSV file into a DataFrame
-    df = pd.read_csv(csv_filename, header=None, names=['Order Type', 'Times', 'Count', 'Count 2', 'Count 3'])
+    df = pd.read_csv(csv_filename, header=None, names=['Order Type', 'Times', 'Executed Orders', 'AVL Tree Balances'])
     
     # Ensure the CSV has the necessary columns
     if 'Times' not in df.columns or 'Order Type' not in df.columns:
@@ -14,12 +14,12 @@ def create_bar_chart_from_csv(csv_filename):
     times = df['Times']
     orderTypes = df['Order Type']
     average_time = times.mean()
-    print(average_time)
+    print(f"Average time: {average_time}")
 
     # Print the 20 rows with the highest times
-    top_20_times = df.nlargest(20, 'Times')
-    print("\nTop 20 rows with the highest times:")
-    print(top_20_times)
+    # top_20_times = df.nlargest(20, 'Times')
+    # print("\nTop 20 rows with the highest times:")
+    # print(top_20_times)
 
     # Create a pie chart of the different order types
     order_type_counts = orderTypes.value_counts()
@@ -43,7 +43,7 @@ def create_bar_chart_from_csv(csv_filename):
     filtered_df = df[~df['Order Type'].isin(excluded_order_types)]
 
     # Calculate mean, 25th, and 75th percentiles for each order type
-    stats = filtered_df.groupby('Order Type')['Times'].agg(['mean', lambda x: x.quantile(0.25), lambda x: x.quantile(0.95)]).reset_index()
+    stats = filtered_df.groupby('Order Type')['Times'].agg(['mean', lambda x: x.quantile(0.25), lambda x: x.quantile(0.85)]).reset_index()
     stats.columns = ['Order Type', 'mean', '25th', '75th']
     stats['error_lower'] = stats['mean'] - stats['25th']
     stats['error_upper'] = stats['75th'] - stats['mean']
@@ -59,38 +59,34 @@ def create_bar_chart_from_csv(csv_filename):
     plt.show()
 
     # Filter for Market and AddMarketLimit order types
-    # market_df = df[df['Order Type'].isin(['Market', 'AddMarketLimit']) & df['Count 2'] == 0]
     market_df = df[df['Order Type'].isin(['Market', 'AddMarketLimit'])]
-    # market_df = market_df[market_df['Count'] <= 15]
+    # market_df = market_df[market_df['Executed Orders'] <= 15]
 
     # Calculate mean, 25th, and 75th percentiles for each count number
-    stats = market_df.groupby('Count')['Times'].agg(['mean', lambda x: x.quantile(0.25), lambda x: x.quantile(0.95)]).reset_index()
-    stats.columns = ['Count', 'mean', '25th', '75th']
-    stats['error_lower'] = stats['mean'] - stats['25th']
-    stats['error_upper'] = stats['75th'] - stats['mean']
+    stats = market_df.groupby('Executed Orders')['Times'].agg(['mean']).reset_index()
+    stats.columns = ['Executed Orders', 'mean']
 
     # Plot the bar chart for average time for each different count
     plt.figure(figsize=(12, 6))
-    plt.bar(stats['Count'], stats['mean'], capsize=5, color='skyblue', edgecolor='black')
-    plt.title('Average Processing Time for Market and AddMarketLimit by Count')
-    plt.xlabel('Count')
+    plt.bar(stats['Executed Orders'], stats['mean'], capsize=5, color='skyblue', edgecolor='black')
+    plt.title('Average Processing Time for Market and AddMarketLimit by Executed Orders')
+    plt.xlabel('Executed Orders')
     plt.ylabel('Average Time')
     plt.show()
 
 
-    balance_df = df[df['Count 3'] != 0]
+    balance_df = df[df['AVL Tree Balances'] != 0]
 
     # Calculate mean, 25th, and 75th percentiles for each count number
-    stats = balance_df.groupby('Count 3')['Times'].agg(['mean', lambda x: x.quantile(0.25), lambda x: x.quantile(0.95)]).reset_index()
-    stats.columns = ['Count 3', 'mean', '25th', '75th']
-    stats['error_lower'] = stats['mean'] - stats['25th']
-    stats['error_upper'] = stats['75th'] - stats['mean']
+    stats = balance_df.groupby('AVL Tree Balances')['Times'].agg(['mean', 'count']).reset_index()
+    stats.columns = ['AVL Tree Balances', 'mean', 'count']
+    stats_filtered = stats[stats['count'] >= 5]
 
     # Plot the bar chart for average time for each different count
     plt.figure(figsize=(12, 6))
-    plt.bar(stats['Count 3'], stats['mean'], capsize=5, color='skyblue', edgecolor='black')
-    plt.title('Average Processing Time for Market and AddMarketLimit by Count')
-    plt.xlabel('Count')
+    plt.bar(stats_filtered['AVL Tree Balances'], stats_filtered['mean'], capsize=5, color='skyblue', edgecolor='black')
+    plt.title('Average Processing Time for Market and AddMarketLimit by Executed Orders')
+    plt.xlabel('Executed Orders')
     plt.ylabel('Average Time')
     plt.show()
 
@@ -98,20 +94,23 @@ def create_bar_chart_from_csv(csv_filename):
     fig = plt.figure(figsize=(10, 6))
     ax = fig.add_subplot(111, projection='3d')
     
-    # Calculate mean, 25th, and 75th percentiles for each count number
-    stats = market_df.groupby(['Count', 'Count 3'])['Times'].agg(['mean', lambda x: x.quantile(0.25), lambda x: x.quantile(0.95)]).reset_index()
-    stats.columns = ['Count', 'Count 3', 'mean', '25th', '75th']
-    stats['error_lower'] = stats['mean'] - stats['25th']
-    stats['error_upper'] = stats['75th'] - stats['mean']
-    x = stats['Count']
-    y = stats['Count 3']
-    z = stats['mean']
+    # Calculate mean for each count number
+    stats = market_df.groupby(['Executed Orders', 'AVL Tree Balances'])['Times'].agg(['mean', 'count']).reset_index()
+    stats.columns = ['Executed Orders', 'AVL Tree Balances', 'mean', 'count']
+    stats_filtered = stats[stats['count'] >= 5]
+    
+    x = stats_filtered['Executed Orders']
+    y = stats_filtered['AVL Tree Balances']
+    z = stats_filtered['mean']
+    x_flipped = x.max() - x
 
-    ax.bar3d(x, y, 0, 1, 1, z, color='skyblue')
-    ax.set_xlabel('Count')
-    ax.set_ylabel('Count 3')
+    ax.bar3d(x_flipped, y, 0, 1, 1, z, color='skyblue')
+    ax.set_xlabel('Executed Orders')
+    ax.set_ylabel('AVL Tree Balances')
     ax.set_zlabel('Time')
-    plt.title('3D Bar Chart of Time with Count and Count 2')
+    # ax.set_xticks([0, 20, 40, 60, 80, 100, 120, 140])
+    # ax.set_xticklabels([140, 120, 100, 80, 60, 40, 20, 0])
+    plt.title('3D Bar Chart of Time with Executed Orders and AVL Tree Balances')
     plt.show()
 
 

@@ -76,130 +76,17 @@ Limit* Book::getLowestStopBuy() const
 // Execute a market order
 void Book::marketOrder(int orderId, bool buyOrSell, int shares)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     marketOrderHelper(orderId, buyOrSell, shares);
 
     executeStopOrders(buyOrSell);
 }
 
-// Executes any stop orders which need to be executed
-void Book::executeStopOrders(bool buyOrSell)
-{
-    if (buyOrSell)
-    {
-        // Execute any buy stop market orders
-        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
-        while (lowestStopBuy != nullptr && (lowestSell == nullptr || lowestStopBuy->getLimitPrice() <= lowestSell->getLimitPrice()))
-        {
-            Order* headOrder = lowestStopBuy->getHeadOrder();
-            if (headOrder->getLimit() == 0)
-            {
-                int shares = headOrder->getShares();
-                headOrder->execute();
-                if (lowestStopBuy->getSize() == 0)
-                {
-                    deleteStopLevel(lowestStopBuy);
-                }
-                deleteFromOrderMap(headOrder->getOrderId());
-                // stopOrders.erase(headOrder);
-                delete headOrder;
-                headOrder = nullptr;
-                marketOrderHelper(0, true, shares);
-            } else {
-                // stopLimitOrders.erase(headOrder);
-                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
-            }
-            // count2 += 1;
-        }
-    } else {
-        // Execute any sell stop market orders
-        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
-        while (highestStopSell != nullptr && (highestBuy == nullptr || highestStopSell->getLimitPrice() >= highestBuy->getLimitPrice()))
-        {
-            Order* headOrder = highestStopSell->getHeadOrder();
-            if (headOrder->getLimit() == 0)
-            {
-                int shares = headOrder->getShares();
-                headOrder->execute();
-                if (highestStopSell->getSize() == 0)
-                {
-                    deleteStopLevel(highestStopSell);
-                }
-                deleteFromOrderMap(headOrder->getOrderId());
-                // stopOrders.erase(headOrder);
-                delete headOrder;
-                headOrder = nullptr;
-                marketOrderHelper(0, false, shares);
-            } else {
-                // stopLimitOrders.erase(headOrder);
-                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
-            }
-            // count2 += 1;
-        }
-    }
-}
-
-// Turn stop limit order into limit order
-void Book::stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell)
-{
-    auto& bookEdge = buyOrSell ? lowestStopBuy : highestStopSell;
-    headOrder->execute();
-    if (bookEdge->getSize() == 0)
-    {
-        deleteStopLevel(bookEdge);
-    }
-
-    // Account for order being executed immediately - majority of cases
-    int shares = existingOrderAsMarketOrder(headOrder, buyOrSell);
-    
-    if (shares != 0)
-    {
-        headOrder->setShares(shares);
-        auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
-
-        if (limitMap.find(headOrder->getLimit()) == limitMap.end())
-        {
-            addLimit(headOrder->getLimit(), buyOrSell);
-        }
-        limitMap.at(headOrder->getLimit())->append(headOrder);
-        // limitOrders.insert(headOrder);
-    }
-}
-
-// Function which actually executes the market order.
-// If the book is empty and can't complete market order then market order just doesn't execute and is forgotten
-void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
-{
-    auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
-
-    while (bookEdge != nullptr && bookEdge->getHeadOrder()->getShares() <= shares)
-    {
-        Order* headOrder = bookEdge->getHeadOrder();
-        shares -= headOrder->getShares();
-        headOrder->execute();
-        if (bookEdge->getSize() == 0)
-        {
-            deleteLimit(bookEdge);
-        }
-        deleteFromOrderMap(headOrder->getOrderId());
-        // limitOrders.erase(headOrder);
-        delete headOrder;
-        headOrder = nullptr;
-        // count += 1;
-    }
-    if (bookEdge != nullptr && shares != 0)
-    {
-        bookEdge->getHeadOrder()->partiallyFillOrder(shares);
-        // count += 1;
-    }
-}
-
 // Add a new limit order to the book
 void Book::addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice)
 {
-    // count3 = 0;
+    AVLTreeBalanceCount = 0;
     // Account for order being executed immediately
     shares = limitOrderAsMarketOrder(orderId, buyOrSell, shares, limitPrice);
     
@@ -224,9 +111,8 @@ void Book::addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice
 // Delete a limit order from the book
 void Book::cancelLimitOrder(int orderId)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
 
     if (order != nullptr)
@@ -246,9 +132,8 @@ void Book::cancelLimitOrder(int orderId)
 // Modify an existing limit order
 void Book::modifyLimitOrder(int orderId, int newShares, int newLimit)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
     if (order != nullptr)
     {
@@ -272,9 +157,8 @@ void Book::modifyLimitOrder(int orderId, int newShares, int newLimit)
 // Add a stop order
 void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     // Account for stop order being executed immediately
     shares = stopOrderAsMarketOrder(orderId, buyOrSell, shares, stopPrice);
     
@@ -295,9 +179,8 @@ void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
 // Delete an stop order from the stop book
 void Book::cancelStopOrder(int orderId)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
 
     if (order != nullptr)
@@ -317,9 +200,8 @@ void Book::cancelStopOrder(int orderId)
 // Modify an existing stop order
 void Book::modifyStopOrder(int orderId, int newShares, int newStopPrice)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
     if (order != nullptr)
     {
@@ -342,9 +224,8 @@ void Book::modifyStopOrder(int orderId, int newShares, int newStopPrice)
 // Add a stop limit order
 void Book::addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     // Account for stop limit order being executed immediately
     shares = stopLimitOrderAsLimitOrder(orderId, buyOrSell, shares, limitPrice, stopPrice);
     
@@ -364,9 +245,8 @@ void Book::addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitP
 
 void Book::cancelStopLimitOrder(int orderId)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
 
     if (order != nullptr)
@@ -386,9 +266,8 @@ void Book::cancelStopLimitOrder(int orderId)
 // Modify an existing stop limit order
 void Book::modifyStopLimitOrder(int orderId, int newShares, int newLimitPrice, int newStopPrice)
 {
-    // count = 0;
-    // count2 = 0;
-    // count3 = 0;
+    executedOrdersCount = 0;
+    AVLTreeBalanceCount = 0;
     Order* order = searchOrderMap(orderId);
     if (order != nullptr)
     {
@@ -407,7 +286,6 @@ void Book::modifyStopLimitOrder(int orderId, int newShares, int newLimitPrice, i
         stopMap.at(newStopPrice)->append(order);
     }
 }
-
 
 // Get the height of a limit in a binary tree
 int Book::getLimitHeight(Limit* limit) const {
@@ -589,6 +467,56 @@ std::vector<int> Book::postOrderTreeTraversal(Limit* root) const
     result.push_back(root->getLimitPrice());
 
     return result;
+}
+
+// Return a random active order
+// 0:Limit, 1:Stop, 2:StopLimit
+Order* Book::getRandomOrder(int key, std::mt19937 gen) const
+{
+    if (key == 0)
+    {
+        if (limitOrders.size() > 10000)
+        {
+            // Generate a random index within the range of the hash set size
+            std::uniform_int_distribution<> mapDist(0, limitOrders.size() - 1);
+            int randomIndex = mapDist(gen);
+
+            // Access the element at the random index directly
+            auto it = limitOrders.begin();
+            std::advance(it, randomIndex);
+            return *it;
+        }
+        return nullptr;
+    } else if (key == 1)
+    {
+        if (stopOrders.size() > 500)
+        {
+            // Generate a random index within the range of the hash set size
+            std::uniform_int_distribution<> mapDist(0, stopOrders.size() - 1);
+            int randomIndex = mapDist(gen);
+
+            // Access the element at the random index directly
+            auto it = stopOrders.begin();
+            std::advance(it, randomIndex);
+            return *it;
+        }
+        return nullptr;
+    } else if (key == 2)
+    {
+        if (stopLimitOrders.size() > 500)
+        {
+            // Generate a random index within the range of the hash set size
+            std::uniform_int_distribution<> mapDist(0, stopLimitOrders.size() - 1);
+            int randomIndex = mapDist(gen);
+
+            // Access the element at the random index directly
+            auto it = stopLimitOrders.begin();
+            std::advance(it, randomIndex);
+            return *it;
+        }
+        return nullptr;
+    }
+    return nullptr;
 }
 
 // Add a new limit to the book
@@ -996,6 +924,116 @@ int Book::stopLimitOrderAsLimitOrder(int orderId, bool buyOrSell, int shares, in
     return shares;
 }
 
+// Executes any stop orders which need to be executed
+void Book::executeStopOrders(bool buyOrSell)
+{
+    if (buyOrSell)
+    {
+        // Execute any buy stop market orders
+        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
+        while (lowestStopBuy != nullptr && (lowestSell == nullptr || lowestStopBuy->getLimitPrice() <= lowestSell->getLimitPrice()))
+        {
+            Order* headOrder = lowestStopBuy->getHeadOrder();
+            if (headOrder->getLimit() == 0)
+            {
+                int shares = headOrder->getShares();
+                headOrder->execute();
+                if (lowestStopBuy->getSize() == 0)
+                {
+                    deleteStopLevel(lowestStopBuy);
+                }
+                deleteFromOrderMap(headOrder->getOrderId());
+                // stopOrders.erase(headOrder);
+                delete headOrder;
+                headOrder = nullptr;
+                marketOrderHelper(0, true, shares);
+            } else {
+                // stopLimitOrders.erase(headOrder);
+                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
+            }
+        }
+    } else {
+        // Execute any sell stop market orders
+        // If the book is empty and can't complete stop market order then it just doesn't execute and is forgotten.
+        while (highestStopSell != nullptr && (highestBuy == nullptr || highestStopSell->getLimitPrice() >= highestBuy->getLimitPrice()))
+        {
+            Order* headOrder = highestStopSell->getHeadOrder();
+            if (headOrder->getLimit() == 0)
+            {
+                int shares = headOrder->getShares();
+                headOrder->execute();
+                if (highestStopSell->getSize() == 0)
+                {
+                    deleteStopLevel(highestStopSell);
+                }
+                deleteFromOrderMap(headOrder->getOrderId());
+                // stopOrders.erase(headOrder);
+                delete headOrder;
+                headOrder = nullptr;
+                marketOrderHelper(0, false, shares);
+            } else {
+                // stopLimitOrders.erase(headOrder);
+                stopLimitOrderToLimitOrder(headOrder, buyOrSell);
+            }
+        }
+    }
+}
+
+// Turn stop limit order into limit order
+void Book::stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell)
+{
+    auto& bookEdge = buyOrSell ? lowestStopBuy : highestStopSell;
+    headOrder->execute();
+    if (bookEdge->getSize() == 0)
+    {
+        deleteStopLevel(bookEdge);
+    }
+
+    // Account for order being executed immediately - majority of cases
+    int shares = existingOrderAsMarketOrder(headOrder, buyOrSell);
+    
+    if (shares != 0)
+    {
+        headOrder->setShares(shares);
+        auto& limitMap = buyOrSell ? limitBuyMap : limitSellMap;
+
+        if (limitMap.find(headOrder->getLimit()) == limitMap.end())
+        {
+            addLimit(headOrder->getLimit(), buyOrSell);
+        }
+        limitMap.at(headOrder->getLimit())->append(headOrder);
+        // limitOrders.insert(headOrder);
+    }
+}
+
+// Function which actually executes the market order.
+// If the book is empty and can't complete market order then market order just doesn't execute and is forgotten
+void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
+{
+    auto& bookEdge = buyOrSell ? lowestSell : highestBuy;
+
+    while (bookEdge != nullptr && bookEdge->getHeadOrder()->getShares() <= shares)
+    {
+        Order* headOrder = bookEdge->getHeadOrder();
+        shares -= headOrder->getShares();
+        headOrder->execute();
+        if (bookEdge->getSize() == 0)
+        {
+            deleteLimit(bookEdge);
+        }
+        deleteFromOrderMap(headOrder->getOrderId());
+        // limitOrders.erase(headOrder);
+        delete headOrder;
+        headOrder = nullptr;
+        executedOrdersCount += 1;
+    }
+    if (bookEdge != nullptr && shares != 0)
+    {
+        bookEdge->getHeadOrder()->partiallyFillOrder(shares);
+        executedOrdersCount += 1;
+    }
+}
+
 // Get height difference between a limits children
 int Book::limitHeightDifference(Limit* limit) {
     int l_height = getLimitHeight(limit->getLeftChild());
@@ -1068,32 +1106,13 @@ Limit* Book::balance(Limit* limit) {
             limit = ll_rotate(limit);
         else
             limit = lr_rotate(limit);
-        // count3 += 1;
+        AVLTreeBalanceCount += 1;
     } else if (bal_factor < -1) {
         if (limitHeightDifference(limit->getRightChild()) > 0)
             limit = rl_rotate(limit);
         else
             limit = rr_rotate(limit);
-        // count3 += 1;
-    }
-    return limit;
-}
-
-// Check if the AVL stop tree needs to be restructured
-Limit* Book::balanceStop(Limit* limit) {
-    int bal_factor = limitHeightDifference(limit);
-    if (bal_factor > 1) {
-        if (limitHeightDifference(limit->getLeftChild()) >= 0)
-            limit = ll_rotateStop(limit);
-        else
-            limit = lr_rotateStop(limit);
-        // count3 += 1;
-    } else if (bal_factor < -1) {
-        if (limitHeightDifference(limit->getRightChild()) > 0)
-            limit = rl_rotateStop(limit);
-        else
-            limit = rr_rotateStop(limit);
-        // count3 += 1;
+        AVLTreeBalanceCount += 1;
     }
     return limit;
 }
@@ -1154,52 +1173,21 @@ Limit* Book::rl_rotateStop(Limit* parent) {
     return rr_rotateStop(parent);
 }
 
-// Return a random active order
-// 0:Limit, 1:Stop, 2:StopLimit
-Order* Book::getRandomOrder(int key, std::mt19937 gen) const
-{
-    if (key == 0)
-    {
-        if (limitOrders.size() > 10000)
-        {
-            // Generate a random index within the range of the hash set size
-            std::uniform_int_distribution<> mapDist(0, limitOrders.size() - 1);
-            int randomIndex = mapDist(gen);
-
-            // Access the element at the random index directly
-            auto it = limitOrders.begin();
-            std::advance(it, randomIndex);
-            return *it;
-        }
-        return nullptr;
-    } else if (key == 1)
-    {
-        if (stopOrders.size() > 500)
-        {
-            // Generate a random index within the range of the hash set size
-            std::uniform_int_distribution<> mapDist(0, stopOrders.size() - 1);
-            int randomIndex = mapDist(gen);
-
-            // Access the element at the random index directly
-            auto it = stopOrders.begin();
-            std::advance(it, randomIndex);
-            return *it;
-        }
-        return nullptr;
-    } else if (key == 2)
-    {
-        if (stopLimitOrders.size() > 500)
-        {
-            // Generate a random index within the range of the hash set size
-            std::uniform_int_distribution<> mapDist(0, stopLimitOrders.size() - 1);
-            int randomIndex = mapDist(gen);
-
-            // Access the element at the random index directly
-            auto it = stopLimitOrders.begin();
-            std::advance(it, randomIndex);
-            return *it;
-        }
-        return nullptr;
+// Check if the AVL stop tree needs to be restructured
+Limit* Book::balanceStop(Limit* limit) {
+    int bal_factor = limitHeightDifference(limit);
+    if (bal_factor > 1) {
+        if (limitHeightDifference(limit->getLeftChild()) >= 0)
+            limit = ll_rotateStop(limit);
+        else
+            limit = lr_rotateStop(limit);
+        AVLTreeBalanceCount += 1;
+    } else if (bal_factor < -1) {
+        if (limitHeightDifference(limit->getRightChild()) > 0)
+            limit = rl_rotateStop(limit);
+        else
+            limit = rr_rotateStop(limit);
+        AVLTreeBalanceCount += 1;
     }
-    return nullptr;
+    return limit;
 }
