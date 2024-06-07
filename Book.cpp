@@ -125,7 +125,6 @@ void Book::cancelLimitOrder(int orderId)
         deleteFromOrderMap(orderId);
         // limitOrders.erase(order);
         delete order;
-        order = nullptr;
     }
 }
 
@@ -193,7 +192,6 @@ void Book::cancelStopOrder(int orderId)
         deleteFromOrderMap(orderId);
         // stopOrders.erase(order);
         delete order;
-        order = nullptr;
     }
 }
 
@@ -259,7 +257,6 @@ void Book::cancelStopLimitOrder(int orderId)
         deleteFromOrderMap(orderId);
         // stopLimitOrders.erase(order);
         delete order;
-        order = nullptr;
     }
 }
 
@@ -751,7 +748,6 @@ void Book::deleteLimit(Limit* limit)
     Limit* parent = limit->getParent();
     int limitPrice = limit->getLimitPrice();
     delete limit;
-    limit = nullptr;
     while (parent != nullptr)
     {
         parent = balance(parent);
@@ -778,7 +774,6 @@ void Book::deleteStopLevel(Limit* stopLevel)
     Limit* parent = stopLevel->getParent();
     int stopPrice = stopLevel->getLimitPrice();
     delete stopLevel;
-    stopLevel = nullptr;
     while (parent != nullptr)
     {
         parent = balanceStop(parent);
@@ -880,7 +875,6 @@ int Book::existingOrderAsMarketOrder(Order* headOrder, bool buyOrSell)
             {
                 deleteFromOrderMap(orderId);
                 delete headOrder;
-                headOrder = nullptr;
                 marketOrderHelper(orderId, buyOrSell, shares);
                 return 0;
             } else {
@@ -896,7 +890,6 @@ int Book::existingOrderAsMarketOrder(Order* headOrder, bool buyOrSell)
             {
                 deleteFromOrderMap(orderId);
                 delete headOrder;
-                headOrder = nullptr;
                 marketOrderHelper(orderId, buyOrSell, shares);
                 return 0;
             } else {
@@ -945,7 +938,6 @@ void Book::executeStopOrders(bool buyOrSell)
                 deleteFromOrderMap(headOrder->getOrderId());
                 // stopOrders.erase(headOrder);
                 delete headOrder;
-                headOrder = nullptr;
                 marketOrderHelper(0, true, shares);
             } else {
                 // stopLimitOrders.erase(headOrder);
@@ -969,7 +961,6 @@ void Book::executeStopOrders(bool buyOrSell)
                 deleteFromOrderMap(headOrder->getOrderId());
                 // stopOrders.erase(headOrder);
                 delete headOrder;
-                headOrder = nullptr;
                 marketOrderHelper(0, false, shares);
             } else {
                 // stopLimitOrders.erase(headOrder);
@@ -1024,7 +1015,6 @@ void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
         deleteFromOrderMap(headOrder->getOrderId());
         // limitOrders.erase(headOrder);
         delete headOrder;
-        headOrder = nullptr;
         executedOrdersCount += 1;
     }
     if (bookEdge != nullptr && shares != 0)
