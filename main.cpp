@@ -1,8 +1,8 @@
-#include "OrderPipeline.hpp"
-#include "GenerateOrders.hpp"
-#include "Book.hpp"
-#include "Limit.hpp"
-#include "Order.hpp"
+#include "./Generate_Orders/GenerateOrders.hpp"
+#include "./Process_Orders/OrderPipeline.hpp"
+#include "./Limit_Order_Book/Book.hpp"
+#include "./Limit_Order_Book/Limit.hpp"
+#include "./Limit_Order_Book/Order.hpp"
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -16,7 +16,7 @@ int main() {
 
     // generateOrders.createInitialOrders(10000, 300);
 
-    orderPipeline.processOrdersFromFile("../initialOrders.txt");
+    orderPipeline.processOrdersFromFile("./initialOrders.txt");
 
     // generateOrders.createOrders(5000000);
 
@@ -24,7 +24,7 @@ int main() {
     // Start measuring time
     auto start = std::chrono::high_resolution_clock::now();
 
-    orderPipeline.processOrdersFromFile("../Orders.txt");
+    orderPipeline.processOrdersFromFile("./Orders.txt");
 
     // Stop measuring time
     auto stop = std::chrono::high_resolution_clock::now();

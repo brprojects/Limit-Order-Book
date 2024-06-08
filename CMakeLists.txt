@@ -11,18 +11,18 @@ enable_testing()
 add_subdirectory(googletest)
 
 set(Headers
-    Book.hpp
-    Limit.hpp
-    Order.hpp
-    OrderPipeline.hpp
-    GenerateOrders.hpp
+    ./Limit_Order_Book/Book.hpp
+    ./Limit_Order_Book/Limit.hpp
+    ./Limit_Order_Book/Order.hpp
+    ./Process_Orders/OrderPipeline.hpp
+    ./Generate_Orders/GenerateOrders.hpp
 )
 set(Sources
-    Book.cpp
-    Limit.cpp
-    Order.cpp
-    OrderPipeline.cpp
-    GenerateOrders.cpp
+    ./Limit_Order_Book/Book.cpp
+    ./Limit_Order_Book/Limit.cpp
+    ./Limit_Order_Book/Order.cpp
+    ./Process_Orders/OrderPipeline.cpp
+    ./Generate_Orders/GenerateOrders.cpp
 )
 
 # Define the library target
