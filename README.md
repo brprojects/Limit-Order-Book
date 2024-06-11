@@ -39,7 +39,7 @@ Limit_Order_Book/
 │ ├── GenerateOrders.cpp
 │ ├── GenerateOrders.hpp
 │ ├── initialOrders.txt
-│ └── orders.txt
+│ └── orders.txt (removed because file size too large)
 ├── Process_Orders/     *files to process sample order data
 │ ├── OrderPipeline.cpp
 │ ├── OrderPipeline.hpp
