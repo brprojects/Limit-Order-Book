@@ -143,7 +143,7 @@ The figure above shows how latency was affected by the number of trades resultin
 
 Another key factor affecting latency was the number of AVL tree rebalances required after each order. This occurred when a limit/stop/stop limit order was added at a new price level, an order was canceled leaving the price level empty, or, most commonly, when a market or market limit order triggered multiple stop orders. Over the test, there were 252,504 AVL tree rebalances. The figure above shows that each tree rebalance significantly increased latency, averaging 2500ns per additional tree rebalance.
 
-![3D Plot](./figures/3D.png)
+<img src="./figures/3D.png" alt="3D Plot" width="600"/>
 
 Since the number of executed orders and AVL tree rebalances are linked, as more trades being executed trigger more tree rebalances, it is important to plot both factors in one graph to determine which factor most contributes to increasing latency. The figure above, shows that more trades being executed does correlate to move AVL tree rebalances, due to no data in the bottom left and top right quadrants, and that both factors isolated do in fact increase latency. However, AVL tree rebalances have a more significant impact on latency, with each extra rebalance clearly increasing latency.
 
