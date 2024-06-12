@@ -1,4 +1,4 @@
-# Central Limit Order Book
+# Limit Order Book
 
 This Limit Order Book is developed in `C++` from scratch and able to handle over 1,400,000 TPS (transactions per second), including Market, Limit, Stop and Stop Limit orders. 
 
