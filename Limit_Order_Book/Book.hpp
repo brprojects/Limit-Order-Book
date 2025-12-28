@@ -6,61 +6,26 @@
 #include <random>
 #include <unordered_set>
 
-class Limit;
-class Order;
+#include "Limit.hpp"
+#include "Order.hpp"
 
 class Book {
 private:
-    Limit *buyTree;
-    Limit *sellTree;
-    Limit *lowestSell;
-    Limit *highestBuy;
-
-    Limit *stopBuyTree;
-    Limit *stopSellTree;
-    Limit *highestStopSell;
-    Limit *lowestStopBuy;
-
+    std::vector<Limit> buyLimits;
+    std::vector<Limit> sellLimits;
+    std::vector<Limit> stopBuyLimits;
+    std::vector<Limit> stopSellLimits;
     std::unordered_map<int, Order*> orderMap;
-    std::unordered_map<int, Limit*> limitBuyMap;
-    std::unordered_map<int, Limit*> limitSellMap;
-    std::unordered_map<int, Limit*> stopMap;
+    Limit& getOrCreateLimit(std::vector<Limit>& limits, int price, bool descending, bool createIfNotFound = true);
+    void removeEmptyLimit(std::vector<Limit>& limits, size_t index);
+    void triggerStopOrders();
 
-    void addLimit(int limitPrice, bool buyOrSell);
-    void addStop(int stopPrice, bool buyOrSell);
-    Limit* insert(Limit* root, Limit* limit, Limit* parent=nullptr);
-    Limit* insertStop(Limit* root, Limit* limit, Limit* parent=nullptr);
-    void updateBookEdgeInsert(Limit* newLimit);
-    void updateStopBookEdgeInsert(Limit* newStop);
-    void updateBookEdgeRemove(Limit* limit);
-    void updateStopBookEdgeRemove(Limit* stopLevel);
-    void changeBookRoots(Limit* limit);
-    void changeStopBookRoots(Limit* stopLevel);
-    void deleteLimit(Limit* limit);
-    void deleteStopLevel(Limit* limit);
-    void deleteFromOrderMap(int orderId);
-    void deleteFromLimitMaps(int LimitPrice, bool buyOrSell);
-    void deleteFromStopMap(int StopPrice);
-    int limitOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
-    int stopOrderAsMarketOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
-    int existingOrderAsMarketOrder(Order* headOrder, bool buyOrSell);
-    int stopLimitOrderAsLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
-    void executeStopOrders(bool buyOrSell);
-    void stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell);
-    void marketOrderHelper(int orderId, bool buyOrSell, int shares);
-
-    // Functions to balance AVL tree
-    int limitHeightDifference(Limit* limit);
-    Limit* rr_rotate(Limit* limit);
-    Limit* ll_rotate(Limit* limit);
-    Limit* lr_rotate(Limit* limit);
-    Limit* rl_rotate(Limit* limit);
-    Limit* balance(Limit* limit);
-    Limit* rr_rotateStop(Limit* limit);
-    Limit* ll_rotateStop(Limit* limit);
-    Limit* lr_rotateStop(Limit* limit);
-    Limit* rl_rotateStop(Limit* limit);
-    Limit* balanceStop(Limit* limit);
+    int crossLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice);
+    int crossStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice);
+    int crossMarketLimitOrder(Order *order);
+    int crossStopLimit(int orderId, bool buyOrSell, int shares, int limitPrice, int stopPrice);
+    void executeMarketOrder(int orderId, bool buyOrSell, int shares);
+    void convertStopLimitToLimit(Order *order, bool buyOrSell);
 
 public:
     Book();
@@ -68,17 +33,6 @@ public:
 
     // Counts used in order book perforamce visualisations
     int executedOrdersCount=0;
-    int AVLTreeBalanceCount=0;
-
-    // Getter and setter functions
-    Limit* getBuyTree() const;
-    Limit* getSellTree() const;
-    Limit* getLowestSell() const;
-    Limit* getHighestBuy() const;
-    Limit* getStopBuyTree() const;
-    Limit* getStopSellTree() const;
-    Limit* getHighestStopSell() const;
-    Limit* getLowestStopBuy() const;
 
     // Functions for different types of orders
     void marketOrder(int orderId, bool buyOrSell, int shares);
@@ -92,26 +46,34 @@ public:
     void cancelStopLimitOrder(int orderId);
     void modifyStopLimitOrder(int orderId, int newShares, int newLimitPrice, int newStopPrice);
 
-    // Functions that needed to be public for testing purposes
-    int getLimitHeight(Limit* limit) const;
+    const std::vector<Limit>& getBuyLimits() const {return buyLimits;}
+    const std::vector<Limit>& getSellLimits() const {return sellLimits;}
+    const std::vector<Limit>& getStopBuyLimits() const {return stopBuyLimits;}
+    const std::vector<Limit>& getStopSellLimits() const {return stopSellLimits;}
     Order* searchOrderMap(int orderId) const;
-    Limit* searchLimitMaps(int limitPrice, bool buyOrSell) const;
-    Limit* searchStopMap(int stopPrice) const;
 
     // Functions for visualising the order book
-    void printLimit(int limitPrice, bool buyOrSell) const;
     void printOrder(int orderId) const;
     void printBookEdges() const;
     void printOrderBook() const;
-    std::vector<int> inOrderTreeTraversal(Limit* root) const;
-    std::vector<int> preOrderTreeTraversal(Limit* root) const;
-    std::vector<int> postOrderTreeTraversal(Limit* root) const;
 
     // Functions and data structures needed for generating sample data
     Order* getRandomOrder(int key, std::mt19937 gen) const;
     std::unordered_set<Order*> limitOrders;
     std::unordered_set<Order*> stopOrders;
     std::unordered_set<Order*> stopLimitOrders;
+
+    int getBestBidPrice() const {
+        return buyLimits.empty() ? 0 : buyLimits.front().getLimitPrice();
+    }
+
+    int getBestAskPrice() const {
+        return sellLimits.empty() ? 0 : sellLimits.front().getLimitPrice();
+    }
+
+    int getAVLTreeBalanceCount() const {
+        return 0;  // No AVL tree anymore
+    }
 };
 
 #endif

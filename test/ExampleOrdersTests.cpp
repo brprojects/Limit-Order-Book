@@ -30,10 +30,10 @@ TEST_F(ExampleOrdersTests, CreateInitialOrdersTest) {
 }
 
 TEST_F(ExampleOrdersTests, ProcessInitialOrdersTest) {
-    orderPipeline->processOrdersFromFile("C:/Users/benja/Documents/Limit_order_book/initialOrders.txt");
+    orderPipeline->processOrdersFromFile("./Generate_Orders/initialOrders.txt");
 }
 
 TEST_F(ExampleOrdersTests, CreateOrdersTest) {
-    orderPipeline->processOrdersFromFile("C:/Users/benja/Documents/Limit_order_book/initialOrders.txt");
+    orderPipeline->processOrdersFromFile("./Generate_Orders/initialOrders.txt");
     generateOrders->createOrders(100000);
 }

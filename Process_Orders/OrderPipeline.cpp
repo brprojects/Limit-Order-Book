@@ -31,7 +31,7 @@ void OrderPipeline::processOrdersFromFile(const std::string& filename)
         return;
     }
 
-    std::ofstream csvFile("order_processing_times.csv", std::ios::trunc); // Open in append mode
+    std::ofstream csvFile("./Process_Orders/order_processing_times.csv", std::ios::trunc);
     if (!csvFile.is_open()) {
         std::cerr << "Error opening CSV file for writing." << std::endl;
         return;
@@ -44,29 +44,28 @@ void OrderPipeline::processOrdersFromFile(const std::string& filename)
         iss >> orderType;
 
         auto it = orderFunctions.find(orderType);
-            if (it != orderFunctions.end()) {
-                auto start = std::chrono::steady_clock::now();
+        if (it != orderFunctions.end()) {
+            auto start = std::chrono::steady_clock::now();
 
-                (this->*(it->second))(iss);
+            (this->*(it->second))(iss);
 
-                auto end = std::chrono::steady_clock::now();
-                auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+            auto end = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
                 
-                if (orderType == "AddLimit")
-                {
-                    csvFile << orderType << "," << duration.count() << "," << 0 << "," << book->AVLTreeBalanceCount << std::endl;
-                } else {
-                    csvFile << orderType << "," << duration.count() << "," << book->executedOrdersCount << ","  << book->AVLTreeBalanceCount << std::endl;
-                }
-                
+            if (orderType == "AddLimit") {
+                csvFile << orderType << "," << duration.count() << "," << 0 << "," << 0 << std::endl;
             } else {
-                std::cerr << "Unknown order type: " << orderType << std::endl;
+                csvFile << orderType << "," << duration.count() << "," << book->executedOrdersCount << "," << 0 << std::endl;
             }
+        } else {
+            std::cerr << "Unknown order type: " << orderType << std::endl;
+        }
     }
     file.close();
     csvFile.close();
 }
 
+// All process* methods remain the same — no changes needed
 void OrderPipeline::processMarketOrder(std::istringstream& iss) {
     int orderId, shares;
     bool buyOrSell;
