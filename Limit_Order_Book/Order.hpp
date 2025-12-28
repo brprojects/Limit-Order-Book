@@ -9,12 +9,13 @@ private:
     bool buyOrSell;
     int shares;
     int limit;
+    friend class Limit;
+    
+public:
     Order *nextOrder;
     Order *prevOrder;
     Limit *parentLimit;
 
-    friend class Limit;
-public:
     Order(int _idNumber, bool _buyOrSell, int _shares, int _limit);
 
     int getShares() const;

@@ -7,33 +7,25 @@ class Limit {
 private:
     int limitPrice;
     int size;
-    int totalVolume;
-    bool buyOrSell;
-    Limit *parent;
-    Limit *leftChild;
-    Limit *rightChild;
+    int totalVolume; // removed parent, child, and buyOrSell since there will be 2 separate vectors storing buy and sell orders
     Order *headOrder;
     Order *tailOrder;
 
     friend class Order;
+
 public:
-    Limit(int _limitPrice, bool _buyOrSell, int _size=0, int _totalVolume=0);
-    ~Limit();
+    Limit(int _limitPrice, int _size=0, int _totalVolume=0);
+    ~Limit() = default;
 
     Order* getHeadOrder() const;
     int getLimitPrice() const;
     int getSize() const;
     int getTotalVolume() const;
-    bool getBuyOrSell() const;
-    Limit* getParent() const;
-    Limit* getLeftChild() const;
-    Limit* getRightChild() const;
-    void setParent(Limit* newParent);
-    void setLeftChild(Limit* newLeftChild);
-    void setRightChild(Limit* newRightChild);
     void partiallyFillTotalVolume(int orderedShares);
 
-    void append(Order *_order);
+    void appendOrder(Order *order);
+    void removeOrder(Order *order);
+    bool isEmpty() const;
 
     void printForward() const;
     void printBackward() const;

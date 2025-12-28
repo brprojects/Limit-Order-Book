@@ -1,99 +1,13 @@
 #include "Limit.hpp"
 #include "Order.hpp"
 #include <iostream>
+#include <cassert>
 
-Limit::Limit(int _limitPrice, bool _buyOrSell, int _size, int _totalVolume)
-    : limitPrice(_limitPrice), buyOrSell(_buyOrSell), size(_size), totalVolume(_totalVolume),
-    parent(nullptr), leftChild(nullptr), rightChild(nullptr),
+Limit::Limit(int _limitPrice, int _size, int _totalVolume)
+    : limitPrice(_limitPrice), size(_size), totalVolume(_totalVolume),
     headOrder(nullptr), tailOrder(nullptr) {}
 
-Limit::~Limit()
-{
-    if (parent != nullptr) {
-        bool leftOrRightChild = (limitPrice < parent->getLimitPrice());
-        // Case 1: Node with only one child or no child
-        if (leftChild == nullptr) {
-            if (leftOrRightChild) {
-                parent->leftChild = rightChild;
-            } else {
-                parent->rightChild = rightChild;
-            }
-            if (rightChild != nullptr) {
-                rightChild->setParent(parent);
-            }
-            return;
-        } else if (rightChild == nullptr) {
-            if (leftOrRightChild) {
-                parent->leftChild = leftChild;
-            } else {
-                parent->rightChild = leftChild;
-            }
-            leftChild->setParent(parent);
-            return;
-        }
-
-        // Case 2: Node with two children
-        Limit* temp = rightChild;
-
-        while (temp->getLeftChild() != nullptr) 
-        {
-            temp = temp->getLeftChild();
-        }
-
-        if (rightChild->getLeftChild() != nullptr)
-        {
-            temp->getParent()->setLeftChild(temp->getRightChild());
-            if (temp->getRightChild() != nullptr)
-            {
-                temp->getRightChild()->setParent(temp->getParent());
-            }
-            temp->setRightChild(rightChild);
-            rightChild->setParent(temp);
-        }
-
-        temp->setParent(parent);
-        temp->setLeftChild(leftChild);
-        leftChild->setParent(temp);
-        if (leftOrRightChild) {
-            parent->leftChild = temp;
-        } else {
-            parent->rightChild = temp;
-        }
-    } else
-    {
-        // Case 1: Node with only one child or no child
-        if (leftChild == nullptr && rightChild == nullptr) {
-            return;
-        } else if (leftChild == nullptr)
-        {
-            rightChild->setParent(nullptr);
-            return;
-        } else if (rightChild == nullptr)
-        {
-            leftChild->setParent(nullptr);
-            return;
-        }
-        
-        // Case 2: Node with two children
-        Limit* temp = rightChild;
-        while (temp->getLeftChild() != nullptr) {
-            temp = temp->getLeftChild();
-        }
-        if (rightChild->getLeftChild() != nullptr)
-        {
-            temp->getParent()->setLeftChild(temp->getRightChild());
-            if (temp->getRightChild() != nullptr)
-            {
-                temp->getRightChild()->setParent(temp->getParent());
-            }
-            temp->setRightChild(rightChild);
-            rightChild->setParent(temp);
-        }
-        temp->setParent(parent); // nullptr
-        temp->setLeftChild(leftChild);
-        leftChild->setParent(temp);
-    }
-}
+// removed original destructor, default destructor is fine
 
 Order* Limit::getHeadOrder() const
 {
@@ -115,60 +29,54 @@ int Limit::getTotalVolume() const
     return totalVolume;
 }
 
-bool Limit::getBuyOrSell() const
-{
-    return buyOrSell;
-}
-
-Limit* Limit::getParent() const
-{
-    return parent;
-}
-
-Limit* Limit::getLeftChild() const
-{
-    return leftChild;
-}
-
-Limit* Limit::getRightChild() const
-{
-    return rightChild;
-}
-
-void Limit::setParent(Limit* newParent)
-{
-    parent = newParent;
-}
-
-void Limit::setLeftChild(Limit* newLeftChild)
-{
-    leftChild = newLeftChild;
-}
-
-void Limit::setRightChild(Limit* newRightChild)
-{
-    rightChild = newRightChild;
-}
-
 void Limit::partiallyFillTotalVolume(int orderedShares)
 {
     totalVolume -= orderedShares;
+    assert (totalVolume >= 0); // guarantee no over filling
 }
 
 // Add an order to the limit
-void Limit::append(Order *order)
+void Limit::appendOrder(Order *order)
 {
-        if (headOrder == nullptr) {
-            headOrder = tailOrder = order;
-        } else {
-            tailOrder->nextOrder = order;
-            order->prevOrder = tailOrder;
-            order->nextOrder = nullptr;
-            tailOrder = order;
-        }
-        size += 1;
-        totalVolume += order->getShares();
-        order->parentLimit = this;
+    assert(order != nullptr);
+    if (headOrder == nullptr) {
+        headOrder = tailOrder = order;
+    } else {
+        tailOrder->nextOrder = order;
+        order->prevOrder = tailOrder;
+        order->nextOrder = nullptr;
+        tailOrder = order;
+    }
+    size += 1;
+    totalVolume += order->getShares();
+    order->parentLimit = this;
+}
+
+// ADD: remove specific order, handling case like cancel order, modify order etc.
+void Limit::removeOrder(Order *order)
+{
+    assert(order != nullptr && order->parentLimit == this);
+    if (order->prevOrder != nullptr) {
+        order->prevOrder->nextOrder = order->nextOrder;
+    } else {
+        headOrder = order->nextOrder;
+    }
+    if (order->nextOrder != nullptr) {
+        order->nextOrder->prevOrder = order->prevOrder;
+    } else {
+        tailOrder = order->prevOrder;
+    }
+
+    size -= 1;
+    totalVolume -= order->getShares();
+    order->parentLimit = nullptr;
+    order->prevOrder = order->nextOrder = nullptr;
+    assert(size >= 0 && totalVolume >= 0);
+}
+
+// ADD: helper function on checking if the limit is empty
+bool Limit::isEmpty() const {
+    return headOrder == nullptr;
 }
 
 void Limit::printForward() const

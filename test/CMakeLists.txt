@@ -1,19 +1,15 @@
-cmake_minimum_required(VERSION 3.29.0)
-
-set(This LimitOrderBookTests)
-
-set(Sources
+add_executable(LimitOrderBookTests
     LimitOrderBookTests.cpp
     ExampleOrdersTests.cpp
+    # add other test files
 )
 
-add_executable(${This} ${Sources})
-target_link_libraries(${This} PUBLIC
-    gtest_main
+target_link_libraries(LimitOrderBookTests
+    PRIVATE
     LimitOrderBook_lib
+    gtest
+    gtest_main
 )
 
-add_test(
-    NAME ${This}
-    COMMAND ${This}
-)
+include(GoogleTest)
+gtest_discover_tests(LimitOrderBookTests)
