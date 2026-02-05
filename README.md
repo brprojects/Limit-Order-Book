@@ -46,15 +46,32 @@ Limit_Order_Book/
 │ ├── data_visualisation.py
 │ └── order_processing_times.csv
 ├── test/               *unit tests
-│ ├── CMakeLists.txt
 │ ├── ExampleOrdersTests.cpp
 │ └── LimitOrderBookTests.cpp
 ├── figures/
 ├── googletest/
 ├── main.cpp
 ├── .gitignore
-├── CMakeLists.txt
+├── build.zig
 └── README.md
+```
+
+## Build Instructions
+
+### Prerequisites
+
+- [Zig](https://ziglang.org/download/) (0.13+)
+- Clone GoogleTest (first time only):
+```bash
+git clone --depth 1 https://github.com/google/googletest.git
+```
+
+### Build and Run
+
+```bash
+zig build              # Build
+zig build test         # Run tests
+./zig-out/bin/LimitOrderBook  # Run executable
 ```
 
 ## Architecture
