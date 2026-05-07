@@ -1,8 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import sys
 
-def create_bar_chart_from_csv(csv_filename):
+def create_bar_chart_from_csv(csv_filename, save_plots):
     # Read the CSV file into a DataFrame
     df = pd.read_csv(csv_filename, header=None, names=['Order Type', 'Times', 'Executed Orders', 'AVL Tree Balances'])
     
@@ -16,13 +17,6 @@ def create_bar_chart_from_csv(csv_filename):
     average_time = times.mean()
     trades_count = df['Executed Orders'].sum()
     balances_count = df['AVL Tree Balances'].sum()
-    # print(f'{trades_count}  {balances_count}')
-    # print(f"Average time: {average_time}")
-
-    # Print the 20 rows with the highest times
-    # top_20_times = df.nlargest(20, 'Times')
-    # print("\nTop 20 rows with the highest times:")
-    # print(top_20_times)
 
     # Create a pie chart of the different order types
     order_type_counts = orderTypes.value_counts()
@@ -30,8 +24,9 @@ def create_bar_chart_from_csv(csv_filename):
     plt.figure(figsize=(8, 8))
     plt.pie(order_type_counts, labels=order_type_counts.index, autopct='%1.1f%%', startangle=0, colors=plt.cm.tab20.colors)
     plt.title('Distribution of Order Types')
-    # plt.show()
-    # plt.savefig('../figures/OrderTypes.png')
+    if save_plots:
+        plt.savefig('./figures/OrderTypes.png')
+    plt.show()
 
     # Create a histogram of the order latencies
     filtered_times = times[times <= 4000]
@@ -40,8 +35,9 @@ def create_bar_chart_from_csv(csv_filename):
     plt.title(f'Orders by Latency Histogram - mean={average_time:.1f}ns ({1000000000/average_time:,.0f} orders/s)')
     plt.xlabel('Latency (ns)')
     plt.ylabel('Number of Orders')
-    # plt.show()
-    # plt.savefig('../figures/LatencyHistogram.png')
+    if save_plots:
+        plt.savefig('./figures/LatencyHistogram.png')
+    plt.show()
     
     # Exclude 'Market' and 'AddMarketLimit' order types
     excluded_order_types = ['Market', 'AddMarketLimit']
@@ -49,10 +45,11 @@ def create_bar_chart_from_csv(csv_filename):
 
     # Calculate mean, 15th, and 85th percentiles for each order type
     stats = filtered_df.groupby('Order Type')['Times'].agg(['mean', lambda x: x.quantile(0.15), lambda x: x.quantile(0.85)]).reset_index()
-    stats.columns = ['Order Type', 'mean', '25th', '75th']
-    stats['error_lower'] = stats['mean'] - stats['25th']
-    stats['error_upper'] = stats['75th'] - stats['mean']
+    stats.columns = ['Order Type', 'mean', '15th', '85th']
+    stats['error_lower'] = stats['15th']# - stats['25th']
+    stats['error_upper'] = stats['85th']# - stats['mean']
     stats = stats.sort_values(by='mean')
+
 
     # Create a bar chart with error bars for latency for each order type
     plt.figure(figsize=(12, 6))
@@ -61,8 +58,9 @@ def create_bar_chart_from_csv(csv_filename):
     plt.xlabel('Order Type')
     plt.ylabel('Latency (ns)')
     plt.xticks(rotation=45)
-    # plt.show()
-    # plt.savefig('../figures/OrderTypeLatencies.png', bbox_inches='tight')
+    if save_plots:
+        plt.savefig('./figures/OrderTypeLatencies.png', bbox_inches='tight')
+    plt.show()
 
     # Filter for Market and AddMarketLimit order types
     market_df = df[df['Order Type'].isin(['Market', 'AddMarketLimit'])]
@@ -78,8 +76,9 @@ def create_bar_chart_from_csv(csv_filename):
     plt.title('Latency by Number of Trades')
     plt.xlabel('Number of Trades per Order')
     plt.ylabel('Latency (ns)')
-    # plt.show()
-    # plt.savefig('../figures/ExecutedOrders.png')
+    if save_plots:
+        plt.savefig('./figures/ExecutedOrders.png')
+    plt.show()
 
 
     balance_df = df[df['AVL Tree Balances'] != 0]
@@ -95,8 +94,9 @@ def create_bar_chart_from_csv(csv_filename):
     plt.title('Latency by Number of AVL Tree Balances')
     plt.xlabel('Number of AVL Tree Balances')
     plt.ylabel('Latency (ns)')
-    # plt.show()
-    # plt.savefig('../figures/AVLTreeBalances.png')
+    if save_plots:
+        plt.savefig('./figures/AVLTreeBalances.png')
+    plt.show()
 
     # Create figure and 3D axis
     fig = plt.figure(figsize=(10, 6))
@@ -120,9 +120,12 @@ def create_bar_chart_from_csv(csv_filename):
     ax.set_xticks([3, 13, 23, 33, 43, 53, 63, 73])
     ax.set_xticklabels([70, 60, 50, 40, 30, 20, 10, 0])
     plt.title('Latency by Number of Trades and AVL Tree Balances')
-    # plt.show()
-    # plt.savefig('../figures/3D.png')
+    if save_plots:
+        plt.savefig('./figures/3D.png')
+    plt.show()
 
 
 csv_filename = './order_processing_times.csv'
-create_bar_chart_from_csv(csv_filename)
+# Check if '--save' was passed in the terminal
+save_plots = '--save' in sys.argv
+create_bar_chart_from_csv(csv_filename, save_plots)

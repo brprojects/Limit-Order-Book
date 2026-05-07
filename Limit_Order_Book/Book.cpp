@@ -102,7 +102,9 @@ void Book::addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice
             addLimit(limitPrice, newOrder->getBuyOrSell());
         }
         limitMap.at(limitPrice)->append(newOrder);
-        // limitOrders.insert(newOrder);
+        #ifdef GENERATE
+            limitOrders.insert(newOrder);
+        #endif
     } else {
         executeStopOrders(buyOrSell);
     }
@@ -123,7 +125,9 @@ void Book::cancelLimitOrder(int orderId)
                 deleteLimit(order->getParentLimit());
             }
         deleteFromOrderMap(orderId);
-        // limitOrders.erase(order);
+        #ifdef GENERATE
+            limitOrders.erase(order);
+        #endif
         delete order;
     }
 }
@@ -171,7 +175,9 @@ void Book::addStopOrder(int orderId, bool buyOrSell, int shares, int stopPrice)
             addStop(stopPrice, newOrder->getBuyOrSell());
         }
         stopMap.at(stopPrice)->append(newOrder);
-        // stopOrders.insert(newOrder);
+        #ifdef GENERATE
+            stopOrders.insert(newOrder);
+        #endif
     }
 }
 
@@ -190,7 +196,9 @@ void Book::cancelStopOrder(int orderId)
                 deleteStopLevel(order->getParentLimit());
             }
         deleteFromOrderMap(orderId);
-        // stopOrders.erase(order);
+        #ifdef GENERATE
+            stopOrders.erase(order);
+        #endif
         delete order;
     }
 }
@@ -237,7 +245,9 @@ void Book::addStopLimitOrder(int orderId, bool buyOrSell, int shares, int limitP
             addStop(stopPrice, newOrder->getBuyOrSell());
         }
         stopMap.at(stopPrice)->append(newOrder);
-        // stopLimitOrders.insert(newOrder);
+        #ifdef GENERATE
+            stopLimitOrders.insert(newOrder);
+        #endif
     }
 }
 
@@ -255,7 +265,9 @@ void Book::cancelStopLimitOrder(int orderId)
                 deleteStopLevel(order->getParentLimit());
             }
         deleteFromOrderMap(orderId);
-        // stopLimitOrders.erase(order);
+        #ifdef GENERATE
+            stopLimitOrders.erase(order);
+        #endif
         delete order;
     }
 }
@@ -936,11 +948,15 @@ void Book::executeStopOrders(bool buyOrSell)
                     deleteStopLevel(lowestStopBuy);
                 }
                 deleteFromOrderMap(headOrder->getOrderId());
-                // stopOrders.erase(headOrder);
+                #ifdef GENERATE
+                    stopOrders.erase(headOrder);
+                #endif
                 delete headOrder;
                 marketOrderHelper(0, true, shares);
             } else {
-                // stopLimitOrders.erase(headOrder);
+                #ifdef GENERATE
+                    stopLimitOrders.erase(headOrder);
+                #endif
                 stopLimitOrderToLimitOrder(headOrder, buyOrSell);
             }
         }
@@ -959,11 +975,15 @@ void Book::executeStopOrders(bool buyOrSell)
                     deleteStopLevel(highestStopSell);
                 }
                 deleteFromOrderMap(headOrder->getOrderId());
-                // stopOrders.erase(headOrder);
+                #ifdef GENERATE
+                    stopOrders.erase(headOrder);
+                #endif
                 delete headOrder;
                 marketOrderHelper(0, false, shares);
             } else {
-                // stopLimitOrders.erase(headOrder);
+                #ifdef GENERATE
+                    stopLimitOrders.erase(headOrder);
+                #endif
                 stopLimitOrderToLimitOrder(headOrder, buyOrSell);
             }
         }
@@ -993,7 +1013,9 @@ void Book::stopLimitOrderToLimitOrder(Order* headOrder, bool buyOrSell)
             addLimit(headOrder->getLimit(), buyOrSell);
         }
         limitMap.at(headOrder->getLimit())->append(headOrder);
-        // limitOrders.insert(headOrder);
+        #ifdef GENERATE
+            limitOrders.insert(headOrder);
+        #endif
     }
 }
 
@@ -1013,7 +1035,9 @@ void Book::marketOrderHelper(int orderId, bool buyOrSell, int shares)
             deleteLimit(bookEdge);
         }
         deleteFromOrderMap(headOrder->getOrderId());
-        // limitOrders.erase(headOrder);
+        #ifdef GENERATE
+            limitOrders.erase(headOrder);
+        #endif
         delete headOrder;
         executedOrdersCount += 1;
     }

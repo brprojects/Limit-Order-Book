@@ -275,7 +275,7 @@ void GenerateOrders::modifyStopLimit()
 void GenerateOrders::createOrders(int numberOfOrders)
 {
     // Open a file named "orders.txt" for writing
-    file.open("C:/Users/benja/Documents/Limit_order_book/orders.txt");
+    file.open("./Generate_Orders/Orders.txt");
 
     if (!file.is_open()) {
         std::cerr << "Error opening file for writing!" << std::endl;
@@ -285,8 +285,7 @@ void GenerateOrders::createOrders(int numberOfOrders)
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
     // Define the probabilities and actions
-    std::vector<double> probabilities = {0.025, 0, 0.195, 0.295, 0.025, 0, 0.12, 0.12, 0, 0.12, 0.12};
-    // std::vector<double> probabilities = {0.05, 0, 0.2, 0.3, 0, 0, 0.15, 0.15, 0, 0, 0.15};
+    std::vector<double> probabilities = {0.025, 0.192, 0.119, 0.179, 0.025, 0.093, 0.073, 0.073, 0.09, 0.071, 0.06};
     std::vector<std::function<void()>> actions = {
         std::bind(&GenerateOrders::market, this),
         std::bind(&GenerateOrders::addLimit, this),
@@ -318,16 +317,13 @@ void GenerateOrders::createOrders(int numberOfOrders)
         // Perform the selected action
         if (selectedAction < probabilities.size()) {
             actions[selectedAction]();
+            //std::cout << "Selected Action: " << selectedAction << std::endl;
 
-            // if (i%100000 == 0)
-            // {
-            //     std::cout << "-------------------------------------" << std::endl;
-            //     std::cout << "Number of orders done: " << i << std::endl;
-                
-            //     std::cout << "Highest Stop Sell: " << book->getHighestStopSell()->getLimitPrice() << ", Lowest Stop Buy: " << book->getLowestStopBuy()->getLimitPrice() << std::endl;
-            //     std::cout << "Lowest Sell: " << book->getLowestSell()->getLimitPrice() << ", Highest Buy: " << book->getHighestBuy()->getLimitPrice() << std::endl;
-            //     book->printOrderBook();
-            // }
+            if (i%100000 == 0)
+            {
+                 std::cout << "-------------------------------------" << std::endl;
+                 std::cout << "Number of orders done: " << i << std::endl;
+            }
             
         } else {
             std::cerr << "Error: No action selected!" << std::endl;
@@ -340,7 +336,7 @@ void GenerateOrders::createOrders(int numberOfOrders)
 void GenerateOrders::createInitialOrders(int numberOfOrders, int centreOfBook)
 {
     // Open a file named "initialOrders.txt" for writing
-    std::ofstream file("C:/Users/benja/Documents/Limit_order_book/initialOrders.txt");
+    std::ofstream file("./Generate_Orders/initialOrders.txt");
 
     if (!file.is_open()) {
         std::cerr << "Error opening file for writing!" << std::endl;

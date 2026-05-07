@@ -4,6 +4,40 @@ This Limit Order Book is developed in `C++` from scratch and able to handle over
 
 Performance testing of the order book was also quite a challenging task as it required getting order data for testing, performing the testing to collect latency statistics, and finally analysing and visualising the collected data. All functionality testing was completed thorough a set of unit tests and integration tests using `GoogleTest`.
 
+## Build
+
+To build the targets `LimitOrderBook`, `LimitOrderBookTests`, and `GenerateOrders`, simply run
+
+```bash
+./build.sh
+```
+
+## Generate Orders
+
+To generate `Orders.txt` and `initialOrders.txt`, just run
+
+```bash
+./GenerateOrders
+```
+
+## Process Orders
+
+To process `Orders.txt`, run
+
+```bash
+./LimitOrderBook
+```
+
+## Visualize Results
+
+To produce the plots in this readme, run
+
+```bash
+python3 Process_Orders/data_visualization.py --save
+```
+
+The `--save` option is optional to save the figures in `./figures`.
+
 ## Background
 
 ### Matching Engine
