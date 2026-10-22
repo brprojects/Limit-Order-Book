@@ -103,9 +103,8 @@ void Book::addLimitOrder(int orderId, bool buyOrSell, int shares, int limitPrice
         }
         limitMap.at(limitPrice)->append(newOrder);
         // limitOrders.insert(newOrder);
-    } else {
-        executeStopOrders(buyOrSell);
     }
+    executeStopOrders(buyOrSell);
 }
 
 // Delete a limit order from the book
