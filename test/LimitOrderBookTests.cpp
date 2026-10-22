@@ -1835,6 +1835,61 @@ TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredBySellLimitOrderWhichIsAMarke
     EXPECT_EQ(book->getHighestStopSell(), nullptr);
 }
 
+
+
+TEST_F(LimitOrderBookTests, TestStopOrderAfterPartiallyMatchedSellLimitOrder) {
+    book->addLimitOrder(111, true, 10, 100);
+    book->addLimitOrder(112, true, 10, 99);
+    book->addLimitOrder(113, true, 10, 97);
+
+    book->addStopOrder(114, false, 15, 99);
+
+    // Confirm the stop order is present before the triggering event.
+    ASSERT_NE(book->getHighestStopSell(), nullptr);
+    EXPECT_EQ(book->getHighestStopSell()->getLimitPrice(), 99);
+
+    // The sell order matches 20 shares and has 5 shares remaining.
+    book->addLimitOrder(115, false, 25, 99);
+
+    // The sell stop should have triggered and been removed.
+    EXPECT_EQ(book->getHighestStopSell(), nullptr);
+
+    // The stop-market order consumes the remaining 10 shares at 97.
+    EXPECT_EQ(book->getHighestBuy(), nullptr);
+
+    // The incoming sell order's remaining 5 shares rest at 99.
+    ASSERT_NE(book->searchLimitMaps(99, false), nullptr);
+    EXPECT_EQ(book->searchLimitMaps(99, false)->getTotalVolume(), 5);
+}
+
+
+TEST_F(LimitOrderBookTests, TestStopOrderAfterPartiallyMatchedBuyLimitOrder) {
+    book->addLimitOrder(111, false, 10, 97);
+    book->addLimitOrder(112, false, 10, 99);
+    book->addLimitOrder(113, false, 10, 100);
+
+    book->addStopOrder(114, true, 15, 99);
+
+    // Confirm the buy stop is present before the triggering event.
+    ASSERT_NE(book->getLowestStopBuy(), nullptr);
+    EXPECT_EQ(book->getLowestStopBuy()->getLimitPrice(), 99);
+
+    // The incoming buy order matches 20 shares and has 5 shares left.
+    book->addLimitOrder(115, true, 25, 99);
+
+    // The buy stop should have triggered and been removed.
+    EXPECT_EQ(book->getLowestStopBuy(), nullptr);
+
+    // The triggered market buy consumes the remaining 10 shares at 100.
+    EXPECT_EQ(book->getLowestSell(), nullptr);
+
+    // The incoming buy order's remaining 5 shares rest at 99.
+    ASSERT_NE(book->searchLimitMaps(99, true), nullptr);
+    EXPECT_EQ(book->searchLimitMaps(99, true)->getTotalVolume(), 5);
+}
+
+
+
 TEST_F(LimitOrderBookTests, TestStopOrdersTriggeredByBuyLimitOrderWhichIsAMarketOrder){
     book->addLimitOrder(111, false, 10, 100);
     book->addLimitOrder(112, false, 10, 99);
